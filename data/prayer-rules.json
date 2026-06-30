@@ -1,0 +1,237 @@
+{
+  "version": "13.0.0",
+  "ruleLengths": {
+    "short": {
+      "label": "Short",
+      "description": "A compact rule for consistency on busy days."
+    },
+    "standard": {
+      "label": "Standard",
+      "description": "The main daily rule with appointed psalm references and rotating prayers."
+    },
+    "extended": {
+      "label": "Extended",
+      "description": "A fuller rule with longer intercession and week-to-week variation."
+    }
+  },
+  "communionModes": {
+    "none": {
+      "label": "Off",
+      "ids": []
+    },
+    "preparation": {
+      "label": "Before Communion",
+      "ids": [
+        "a-prayer-of-saint-basil-the-great",
+        "another-prayer-of-saint-basil-the-great",
+        "a-prayer-of-saint-john-chrysostom",
+        "a-prayer-of-saint-john-of-damascus",
+        "another-prayer-of-saint-john-of-damascus",
+        "a-prayer-of-saint-john-chrysostom-before-holy-communion"
+      ]
+    },
+    "thanksgiving": {
+      "label": "After Communion",
+      "ids": [
+        "a-prayer-of-thanksgiving-after-holy-communion",
+        "a-prayer-of-saint-basil-the-great-after-holy-communion",
+        "a-prayer-of-saint-simeon-metaphrastes",
+        "another-prayer",
+        "a-prayer-to-the-theotokos"
+      ]
+    }
+  },
+  "common": {
+    "shortOpening": [
+      "opening-blessing"
+    ],
+    "fullOpening": [
+      "opening-blessing",
+      "glorification-of-god",
+      "invocation-of-the-holy-spirit",
+      "trisagion-thrice-holy-prayers",
+      "the-lords-prayer",
+      "lord-have-mercy",
+      "call-to-worship"
+    ],
+    "closing": [
+      "hymn-to-the-theotokos",
+      "dismissal-closing-prayer"
+    ]
+  },
+  "officeBase": {
+    "Morning": {
+      "main": [
+        "a-morning-prayer",
+        "the-morning-prayer-of-the-optina-elders"
+      ],
+      "short": [
+        "a-morning-prayer",
+        "the-jesus-prayer"
+      ],
+      "standardExtras": [
+        "the-creed-the-symbol-of-faith",
+        "brief-prayers-of-intercession"
+      ],
+      "extendedExtras": [
+        "a-prayer-for-any-hour-of-the-day",
+        "a-longer-prayer-of-intercession",
+        "a-prayer-of-saint-philaret-metropolitan-of-moscow-asking-god-to-meet-our-needs"
+      ]
+    },
+    "Evening": {
+      "main": [
+        "an-evening-prayer",
+        "a-night-prayer-preparing-for-sleep"
+      ],
+      "short": [
+        "an-evening-prayer",
+        "just-before-going-to-sleep"
+      ],
+      "standardExtras": [
+        "brief-prayers-of-intercession",
+        "a-prayer-to-the-guardian-angel"
+      ],
+      "extendedExtras": [
+        "a-longer-prayer-of-intercession",
+        "just-before-going-to-sleep",
+        "a-prayer-in-time-of-need-or-trouble"
+      ]
+    }
+  },
+  "weeklyCycle": {
+    "1": {
+      "title": "Repentance & Watchfulness",
+      "morning": [
+        "a-prayer-of-repentance",
+        "a-prayer-for-the-acceptance-of-gods-will"
+      ],
+      "evening": [
+        "a-prayer-of-repentance",
+        "a-prayer-against-demonic-influence"
+      ]
+    },
+    "2": {
+      "title": "Intercession & Love",
+      "morning": [
+        "a-prayer-for-the-sick",
+        "a-prayer-for-love-of-god"
+      ],
+      "evening": [
+        "a-prayer-for-enemies",
+        "a-prayer-for-the-departed"
+      ]
+    },
+    "3": {
+      "title": "Saints, Angels & Theotokos",
+      "morning": [
+        "to-the-mother-of-god-the-theotokos-and-ever-virgin-mary",
+        "a-prayer-to-the-guardian-angel"
+      ],
+      "evening": [
+        "another-prayer-to-the-guardian-angel",
+        "a-prayer-to-saint-john-the-baptist"
+      ]
+    },
+    "4": {
+      "title": "Daily Life & Obedience",
+      "morning": [
+        "a-prayer-before-any-work",
+        "a-prayer-before-lessons-or-study"
+      ],
+      "evening": [
+        "a-prayer-after-any-work",
+        "a-prayer-when-facing-the-unknown"
+      ]
+    }
+  },
+  "days": {
+    "Monday": {
+      "theme": "Angels, protection, watchfulness",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "a-prayer-to-the-guardian-angel",
+        "another-prayer-to-the-guardian-angel"
+      ]
+    },
+    "Tuesday": {
+      "theme": "St. John the Baptist, repentance",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "a-prayer-to-saint-john-the-baptist",
+        "a-prayer-of-repentance"
+      ]
+    },
+    "Wednesday": {
+      "theme": "The Cross, betrayal, repentance",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "a-prayer-of-repentance",
+        "a-prayer-for-the-acceptance-of-gods-will"
+      ]
+    },
+    "Thursday": {
+      "theme": "Apostles, St. Nicholas, service",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "a-prayer-to-saint-nicholas",
+        "a-prayer-before-any-work"
+      ]
+    },
+    "Friday": {
+      "theme": "The Passion of Christ, compunction",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "the-lenten-prayer-of-saint-ephrem",
+        "a-prayer-of-repentance"
+      ]
+    },
+    "Saturday": {
+      "theme": "The departed, all saints, Sabbath rest",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "a-prayer-for-the-departed",
+        "another-prayer-for-the-departed"
+      ]
+    },
+    "Sunday": {
+      "theme": "Resurrection, thanksgiving, joy",
+      "psalms": {
+        "Morning": [],
+        "Evening": []
+      },
+      "daily": [
+        "the-paschal-troparion",
+        "a-prayer-of-thanksgiving-after-holy-communion"
+      ]
+    }
+  },
+  "quickPrayers": [
+    "the-jesus-prayer",
+    "a-prayer-before-lessons-or-study",
+    "a-prayer-before-traveling",
+    "a-prayer-for-the-sick",
+    "a-prayer-for-the-departed",
+    "the-lenten-prayer-of-saint-ephrem",
+    "the-prayer-of-saint-ioannikios",
+    "the-prayer-of-saint-macarius-the-egyptian"
+  ]
+}

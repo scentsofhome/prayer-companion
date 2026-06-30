@@ -1,0 +1,1121 @@
+{
+  "version": "13.0.0",
+  "title": "Orthodox Prayer Book",
+  "description": "A full static PWA prayer book built from the uploaded Orthodox prayer book PDF. Only prayer texts are included in the app UI; psalms are references only in daily rules.",
+  "categories": [
+    {
+      "id": "rule-of-prayer",
+      "title": "Rule of Prayer"
+    },
+    {
+      "id": "times-of-day",
+      "title": "Times of Day"
+    },
+    {
+      "id": "intercessions",
+      "title": "Intercessions"
+    },
+    {
+      "id": "prayers-for-others",
+      "title": "Prayers for Others"
+    },
+    {
+      "id": "various-occasions",
+      "title": "Various Occasions"
+    },
+    {
+      "id": "seasons-of-the-year",
+      "title": "Seasons of the Year"
+    },
+    {
+      "id": "theotokos-saints-angels",
+      "title": "Theotokos, Saints & Angels"
+    },
+    {
+      "id": "before-holy-communion",
+      "title": "Before Holy Communion"
+    },
+    {
+      "id": "after-holy-communion",
+      "title": "After Holy Communion"
+    }
+  ],
+  "prayers": [
+    {
+      "id": "opening-blessing",
+      "title": "Opening Blessing",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "beginning",
+        "opening",
+        "rule of prayer",
+        "trinity"
+      ],
+      "text": [
+        "In the Name of the Father, and of the Son, and of the Holy Spirit. Amen."
+      ]
+    },
+    {
+      "id": "glorification-of-god",
+      "title": "Glorification of God",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "glory",
+        "opening",
+        "rule of prayer"
+      ],
+      "text": [
+        "Glory to You, our God, glory to You!"
+      ]
+    },
+    {
+      "id": "invocation-of-the-holy-spirit",
+      "title": "Invocation of the Holy Spirit",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "heavenly king",
+        "holy spirit",
+        "opening",
+        "rule of prayer"
+      ],
+      "text": [
+        "O Heavenly King, the Comforter, the Spirit of Truth, Who art everywhere and fillest all things; Treasury of Blessings, and Giver of Life, come and abide in us, and cleanse us from every impurity, and save our souls, O Good One."
+      ]
+    },
+    {
+      "id": "trisagion-thrice-holy-prayers",
+      "title": "Trisagion (Thrice Holy) Prayers",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "holy god",
+        "opening",
+        "rule of prayer",
+        "trisagion"
+      ],
+      "text": [
+        "Holy God! Holy Mighty! Holy Immortal! Have mercy on us.",
+        "Holy God! Holy Mighty! Holy Immortal! Have mercy on us.",
+        "Holy God! Holy Mighty! Holy Immortal! Have mercy on us.",
+        "Glory to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen.",
+        "O most Holy Trinity, have mercy on us. O Lord, cleanse us from our sins. O Master, pardon our transgressions. O Holy One, visit and heal our infirmities, for Your Name’s sake.",
+        "Lord, have mercy. Lord, have mercy. Lord, have mercy.",
+        "Glory to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "the-lords-prayer",
+      "title": "The Lord’s Prayer",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "core",
+        "daily",
+        "our father",
+        "rule of prayer"
+      ],
+      "text": [
+        "Our Father, Who art in Heaven, hallowed be Thy name; Thy Kingdom come; Thy will be done; on earth as it is in Heaven. Give us this day our daily bread. And forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation; but deliver us from evil. Amen."
+      ]
+    },
+    {
+      "id": "lord-have-mercy",
+      "title": "Lord Have Mercy",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "mercy",
+        "opening",
+        "rule of prayer"
+      ],
+      "text": [
+        "Lord, have mercy. (12 times)",
+        "Glory to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "call-to-worship",
+      "title": "Call to Worship",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "opening",
+        "rule of prayer",
+        "worship"
+      ],
+      "text": [
+        "Come, let us worship God, our King!",
+        "Come, let us worship and fall down before Christ, our King and our God!",
+        "Come, let us worship and fall down before Christ Himself, our King and our God!"
+      ]
+    },
+    {
+      "id": "the-creed-the-symbol-of-faith",
+      "title": "The Creed: The Symbol of Faith",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "creed",
+        "faith",
+        "rule of prayer",
+        "symbol"
+      ],
+      "text": [
+        "I believe in one God, the Father Almighty, Maker of Heaven and Earth and of all things visible and invisible. And in one Lord Jesus Christ, the Son of God, the only-begotten, begotten of the Father before all ages. Light of light; true God of true God; begotten, not made; of one essence with the Father, by Whom all things were made; Who for us men and for our salvation came down from Heaven, and was incarnate of the Holy Spirit and the Virgin Mary, and became man. And He was crucified for us under Pontius Pilate, and suffered, and was buried.",
+        "And the third day He arose again, according to the Scriptures, and ascended into Heaven, and sits at the right hand of the Father; and He shall come again with glory to judge the living and the dead, Whose Kingdom shall have no end. And in the Holy Spirit, the Lord, the Giver of Life, Who proceeds from the Father, Who with the Father and the Son together is worshipped and glorified, Who spoke by the prophets. In one Holy, Catholic, and Apostolic Church. I acknowledge one baptism for the remission of sins. I look for the resurrection of the dead and the life of the world to come. Amen."
+      ]
+    },
+    {
+      "id": "the-jesus-prayer",
+      "title": "The Jesus Prayer",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "jesus prayer",
+        "mercy",
+        "rule of prayer",
+        "short"
+      ],
+      "text": [
+        "O Lord Jesus Christ, Son of God, have mercy on me, a sinner."
+      ]
+    },
+    {
+      "id": "hymn-to-the-theotokos",
+      "title": "Hymn to the Theotokos",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "closing",
+        "mother of god",
+        "rule of prayer",
+        "theotokos"
+      ],
+      "text": [
+        "It is truly meet to bless you, O Theotokos, ever-blessed and most pure, and the Mother of our God. More honorable than the Cherubim, and more glorious beyond compare than the Seraphim. Without defilement you gave birth to God the Word. True Theotokos, we magnify you!"
+      ]
+    },
+    {
+      "id": "dismissal-closing-prayer",
+      "title": "Dismissal (Closing Prayer)",
+      "category": "Rule of Prayer",
+      "type": "prayer",
+      "tags": [
+        "closing",
+        "dismissal",
+        "rule of prayer"
+      ],
+      "text": [
+        "Through the prayers of our Holy Fathers, O Lord Jesus Christ, have mercy on us and save us. Amen."
+      ]
+    },
+    {
+      "id": "a-morning-prayer",
+      "title": "A Morning Prayer",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "daily",
+        "morning",
+        "times of day"
+      ],
+      "text": [
+        "Arising from sleep, I thank You, O all-holy Trinity, for in Your great goodness and longsuffering patience, You have not turned Your anger upon me, a lazy sinner, nor have You let me perish in my transgressions, but have dealt with me according to Your love for mankind. You have lifted me from my despair, that I may be vigilant and glorify Your might. Now, therefore, illumine the eyes of my mind and open my mouth that I may learn Your words, understand Your precepts, and do Your will; thus I will sing to You wholeheartedly and praise Your all-holy name of the Father and of the Son and of the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "the-morning-prayer-of-the-optina-elders",
+      "title": "The Morning Prayer of the Optina Elders",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "daily",
+        "morning",
+        "optina",
+        "times of day"
+      ],
+      "text": [
+        "O Lord, grant me to greet the coming day in peace. Help me in all things to rely upon Your holy will. In every hour of the day reveal Your will to me. Bless my dealings with all who surround me. Teach me to treat all that comes to me throughout the day with peace of soul and with firm conviction that Your will governs all. In all my deeds and words, guide my thoughts and feelings. In unforeseen events let me not forget that all are sent by You. Teach me to act firmly and wisely, without embittering and embarrassing others. Give me strength to bear the fatigue of the coming day with all that it shall bring. Direct my will, teach me to pray; and You, Yourself, pray in me. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-any-hour-of-the-day",
+      "title": "A Prayer for any Hour of the Day",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "any time",
+        "daily",
+        "hour",
+        "times of day"
+      ],
+      "text": [
+        "O Christ our God, who at all times and in every hour in heaven and on earth are worshiped and glorified; who are longsuffering, merciful, and compassionate; who loves the just and shows mercy upon sinners; who calls all to salvation through the promise of the good things to come; O Lord, in this hour receive our supplications and direct our lives according to Your commandments. Sanctify our souls, purify our bodies, correct our thoughts, cleanse our minds; deliver us from all tribulation, evil, and distress. Surround us with Your holy angels so that, guided and guarded by them, we may attain to the unity of the Faith and to the full knowledge of Your unapproachable glory. For You are blessed unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "an-evening-prayer",
+      "title": "An Evening Prayer",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "daily",
+        "evening",
+        "times of day"
+      ],
+      "text": [
+        "O Eternal God, O King of all creation, Who have kept me safe to attain to this hour, forgive me the sins which I have committed this day in thought, word, and deed. And cleanse, O Lord, my humble soul from every stain of flesh and spirit: Grant me, O Lord, to pass this night in peace, to rise again from my bed, to please Your holy Name all the days of my life, and to vanquish the enemies, both physical and spiritual, that contend against me. Deliver me, O Lord, from the vain thoughts that defile me and from evil desires. For Yours are the Kingdom, and the power, and the glory, of the Father, and of the Son, and of the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-night-prayer-preparing-for-sleep",
+      "title": "A Night Prayer, Preparing for Sleep",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "evening",
+        "night",
+        "sleep",
+        "times of day"
+      ],
+      "text": [
+        "O Lord, God our Father, if during this day I have sinned in word, deed, or thought, forgive me in Your goodness and love. Grant me peaceful sleep; protect me from all evil and awaken me in the morning that I may glorify you, Heavenly Father, together with Your Son and Your Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "just-before-going-to-sleep",
+      "title": "Just Before Going to Sleep",
+      "category": "Times of Day",
+      "type": "prayer",
+      "tags": [
+        "bedtime",
+        "evening",
+        "sleep",
+        "times of day"
+      ],
+      "text": [
+        "Into Your hands, O Lord Jesus Christ, I commend my spirit and body; bless me, save me, and grant me eternal life. Amen. Through the prayers of our Holy Fathers, O Lord Jesus Christ our God, have mercy upon us and save us. Amen."
+      ]
+    },
+    {
+      "id": "brief-prayers-of-intercession",
+      "title": "Brief Prayers of Intercession",
+      "category": "Intercessions",
+      "type": "prayer",
+      "tags": [
+        "departed",
+        "intercession",
+        "intercessions",
+        "living",
+        "names"
+      ],
+      "text": [
+        "O Holy Saint, NAME, my heavenly patron, pray to God for me, a sinner. Remember, O Lord, all those in need of your mercy and help, especially NAMES. Remember, O Lord, all those who have fallen asleep in You, the Lord, in the hope of resurrection and eternal life, especially NAMES."
+      ]
+    },
+    {
+      "id": "a-longer-prayer-of-intercession",
+      "title": "A Longer Prayer of Intercession",
+      "category": "Intercessions",
+      "type": "prayer",
+      "tags": [
+        "church",
+        "departed",
+        "intercession",
+        "intercessions",
+        "living"
+      ],
+      "text": [
+        "O Lord Jesus Christ, our God, in Your mercy and loving-kindness You regard the humble prayers of all who call upon You with their whole heart; incline Your ear and hear now my prayer, offered to You in humility: Be mindful, O Lord, of Your Holy, Universal and Apostolic Church; confirm and strengthen the Church, increase the Church and keep the Church in peace, and preserve the Church unconquerable forever.",
+        "Be mindful, O Lord, of our Metropolitan NAME and our (Arch)Bishop NAME, of the Holy Synod of Bishops of the Orthodox Church in America, and of every bishop of the Church; be mindful, also, O Lord, of the priests and deacons, and all the clergy of the Church, whom You have established to feed the flock with Your Word; and by their prayers have mercy upon me and save me, a sinner. Be mindful, O Lord, of all civil authorities, of the armed forces, of this town and region in which we live, and of every city and country; grant them peaceful times, so that we—in their tranquility— may lead a calm and peaceful life in all Godliness and sanctity.",
+        "Be mindful, O Lord, of my parents, of my brothers and sisters, of my relatives, and of my friends, grant that they may have mercy, life, peace, health, salvation and visitation, pardon and remission of their sins; that they may ever praise and glorify Your Holy Name. Be mindful, O Lord, of those who travel by land, by sea, and by air; of the old and the young, the sick, the suffering, the sorrowing, the afflicted, the captives, the needy and the poor; and upon them all send forth Your mercies, for You are the Giver of all good things. Be mindful, O Lord, of those who have departed this life in the hope of resurrection to eternal life.",
+        "Grant them, O Lord, everlasting rest in blessed repose, and make their memory to be eternal. Be mindful, O Lord, of me, Your humble servant; grant me Your grace, that I may be diligent and faithful, avoiding evil company and influence, resisting temptation; that I may lead a godly and righteous life, blameless and peaceful, ever serving You; and that I may be accounted worthy of entering the Kingdom of Heaven. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-the-sick",
+      "title": "A Prayer for the Sick",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "healing",
+        "health",
+        "prayers for others",
+        "sick"
+      ],
+      "text": [
+        "O Holy Father, Heavenly Physician of our souls and bodies, who has sent Your only-begotten Son and our Lord Jesus Christ to heal our diseases and deliver us from death, visit and heal Your servant(s) NAME(S), granting him/her/them release from pain and restoration to health and life, that he/she/they may give thanks to You and bless Your Holy Name: of the Father, and of the Son, and of the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "another-prayer-for-the-sick",
+      "title": "Another Prayer for the Sick",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "healing",
+        "health",
+        "prayers for others",
+        "sick"
+      ],
+      "text": [
+        "O Christ, Who alone are our Defender: Visit and heal Your suffering servant NAME delivering him/her from sickness and grievous pains. Raise him/her up that he/she may sing to You and praise You without ceasing, through the prayers of the Theotokos, O You Who alone loves mankind. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-the-terminally-ill",
+      "title": "A Prayer for the Terminally Ill",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "death",
+        "prayers for others",
+        "sick",
+        "terminally ill"
+      ],
+      "text": [
+        "O Lord, Jesus Christ, Who suffered and died for our sins that we may live, if during our life we have sinned in word, deed, or thought, forgive us in Your goodness and love. All our hope we put in You; protect your servant NAME from all evil. We submit to Your will and into Your hands we commend our souls and bodies. For a Christian end to our lives—peaceful, without shame and suffering—and for a good account before the awesome judgment seat of Christ, we pray to You, O Lord. Bless us, be merciful to us, and grant us life eternal. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-the-departed",
+      "title": "A Prayer for the Departed",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "death",
+        "departed",
+        "memory eternal",
+        "prayers for others"
+      ],
+      "text": [
+        "Into Your hands, O Lord, I commend the souls of Your servants NAMES, and beseech You to grant them rest in the place of Your rest, where all Your blessed Saints repose, and where the light of Your countenance shines forever. And I beseech You also to grant that our present lives may be godly, sober, and blameless; that we too may be made worthy to enter into Your heavenly Kingdom with those whom we love but see no longer; for You are the Resurrection, and the Life, and the Repose of Your departed servants, O Christ our God, and to You we ascribe glory: to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "another-prayer-for-the-departed",
+      "title": "Another Prayer for the Departed",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "death",
+        "departed",
+        "memory eternal",
+        "prayers for others"
+      ],
+      "text": [
+        "O God of spirits and of all flesh, Who has trampled down death and overthrown the Devil, and given life to Your world, do You, the same Lord, give rest to the souls of Your departed servants in a place of brightness, a place of refreshment, a place of repose, where all sickness, sighing, and sorrow have fled away. Pardon every transgression which they have committed, whether by word or deed or thought. For You are a good God and You love mankind; because there is no person who lives yet does not sin, for You only are without sin, Your righteousness is to all eternity, and Your word is truth.",
+        "For You are the Resurrection, the Life, and the Repose of Your servants who have fallen asleep, O Christ our God, and to You we ascribe glory, together with Your Father, who is from everlasting, and Your all-holy, good, and life-creating Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-parents-for-their-children",
+      "title": "A Prayer of Parents for their Children",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "children",
+        "family",
+        "parents",
+        "prayers for others"
+      ],
+      "text": [
+        "O God, our heavenly Father, Who loves mankind, and are most merciful and compassionate, have mercy upon our children, Your servants, NAMES, for whom we humbly pray, and commend them to Your gracious protection. Be Yourself, O God, their guide and guardian in all their endeavors; lead them in the path of Your truth, and draw them near to You, that they may lead a godly and righteous life in Your love and fear; doing Your will in all matters. Give them grace that they may be temperate, industrious, diligent, devout and charitable. Defend them against the assaults of the enemy, grant them wisdom and strength to resist all temptation and corruption of this life, and direct them in the way of salvation, to the glory of Your Son, our Savior Jesus Christ, through the intercessions of His Holy Mother, and Your blessed saints. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-children-for-their-parents",
+      "title": "A Prayer of Children for Their Parents",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "children",
+        "family",
+        "parents",
+        "prayers for others"
+      ],
+      "text": [
+        "Our Father, who art in Heaven, bless my father and mother and those who are in authority over me—bless them for their love and tender care for me and for all the good things I receive at their hands. Help me, I pray, to be respectful and obedient to them in all things according to Your will. Give me Your grace to perform all my duties and responsibilities carefully and faithfully, to avoid undesirable company and influence, and to resist all temptations that may come my way. Abide in me always, that I may live a sober, righteous and godly life, ever praising You, and glorifying Your Holy Name. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-enemies",
+      "title": "A Prayer for Enemies",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": [
+        "enemies",
+        "forgiveness",
+        "prayers for others",
+        "reconciliation"
+      ],
+      "text": [
+        "O Lord Jesus Christ—Who commanded us to love our enemies and those who defame and injure us, and to pray for them and forgive them—Who Yourself prayed for Your enemies, including those who crucified You: grant us, we pray, the spirit of Christian reconciliation and meekness, that we may wholeheartedly forgive every injury and be reconciled with our enemies. Grant us to overcome the wickedness and wrongdoings of others with Christian meekness and true love of our neighbor. We further beg You, O Lord, to grant to our enemies true peace and forgiveness of sins—do not allow them to leave this life without true faith and sincere conversion. Lastly, help us repay evil with goodness, and to remain safe from the temptations of the devil and from all the perils which threaten us in the form of visible and invisible enemies. Amen."
+      ]
+    },
+    {
+      "id": "the-prayer-of-saint-ioannikios",
+      "title": "The Prayer of Saint Ioannikios",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "saint ioannikios",
+        "short",
+        "trinity",
+        "various occasions"
+      ],
+      "text": [
+        "The Father is my hope; the Son is my refuge; the Holy Spirit is my protector. O Holy Trinity, glory to You."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-philaret-metropolitan-of-moscow-asking-god-to-meet-our-needs",
+      "title": "A Prayer of Saint Philaret, Metropolitan of Moscow, Asking God to meet Our Needs",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "needs",
+        "saint philaret",
+        "trust",
+        "various occasions",
+        "will"
+      ],
+      "text": [
+        "My Lord, I know not what I ought to ask of You. You and You alone know my needs. You love me more than I am able to love You. O Father, grant to me, Your servant, all which I cannot ask. I dare not ask for a “cross”, nor for consolation; I dare only to stand in Your presence. My heart is open to You. You see my needs of which I myself am unaware. Behold and lift me up. In Your presence I stand, awed and silenced by Your will and Your judgments, into which my mind cannot penetrate. To You I offer myself as a sacrifice. No other desire is mine but to fulfill Your will. Teach me how to pray. Pray Yourself within me. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-the-acceptance-of-gods-will",
+      "title": "A Prayer for the Acceptance of God’s Will",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "acceptance",
+        "trust",
+        "various occasions",
+        "will"
+      ],
+      "text": [
+        "O Lord, I do not know what to ask of you. You know better than me what my needs are. You love more than I know how to love. Help me to see clearly my real needs which I do not see. I open my heart to you. Examine and reveal to me my faults and sins. I put all my trust in you. I have no other desire than to fulfill your will. Teach me how to pray. Pray in me. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-asking-god-to-help-us-be-obedient-to-his-holy-will",
+      "title": "A Prayer asking God to Help Us be Obedient to His Holy Will",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "obedience",
+        "various occasions",
+        "will"
+      ],
+      "text": [
+        "O Lord our God, make our hearts obedient to Your divine will; turn our eyes away from vain things so that, free from the world’s attractions, they may always look on Your glorious beauty: For You are our God, the God of compassion and salvation, and we glorify You, Father, Son, and Holy Spirit, now and forever, to the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-repentance",
+      "title": "A Prayer of Repentance",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "confession",
+        "repentance",
+        "various occasions"
+      ],
+      "text": [
+        "O Lord our God, good and merciful, I acknowledge all my sins which I have committed every day of my life, in thought, word, and deed; in body and soul alike. I am truly sorry that I have ever offended You, and I sincerely repent. With tears I humbly pray You, O Lord: because of Your mercy forgive me all my past transgressions and absolve me from them. I firmly resolve, with the help of Your Grace, to amend my way of life and to sin no more; that I may walk in the way of righteousness and offer praise and glory to the Father, and to the Son, and to the Holy Spirit. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-for-love-of-god",
+      "title": "A Prayer for Love of God",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "god",
+        "heart",
+        "love",
+        "various occasions"
+      ],
+      "text": [
+        "O Christ my God, set my heart on fire with love in You, that in its flame I may love You with all my heart, with all my mind, with all my soul and with all my strength—and my neighbor as myself—so that, by keeping Your commandments, I may glorify You, the Giver of every good and perfect gift. Amen."
+      ]
+    },
+    {
+      "id": "prayer-before-meals",
+      "title": "Prayer Before Meals",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "food",
+        "home",
+        "meals",
+        "various occasions"
+      ],
+      "text": [
+        "In the Name of the Father, and of the Son, and of the Holy Spirit. Amen.",
+        "Our Father, Who art in Heaven, hallowed be Thy name; Thy Kingdom come; Thy will be done; on earth as it is in Heaven. Give us this day our daily bread. And forgive us our trespasses, as we forgive those who trespass against us. And lead us not into temptation; but deliver us from evil.",
+        "Glory to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen.",
+        "Lord, have mercy. Lord, have mercy. Lord, have mercy.",
+        "O Christ our God, bless the food, drink, and fellowship of Your servants, for You are holy always, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "prayer-after-meals",
+      "title": "Prayer After Meals",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "food",
+        "meals",
+        "thanksgiving",
+        "various occasions"
+      ],
+      "text": [
+        "We give thanks to You, O Christ our God, that You have satisfied us with Your earthly blessings; deprive us not also of Your Heavenly Kingdom. As You came to Your disciples and granted them peace; so come to us and save us, O Savior.",
+        "Glory to the Father, and to the Son, and to the Holy Spirit, now and ever and unto ages of ages. Amen.",
+        "Lord, have mercy. Lord, have mercy. Lord, have mercy.",
+        "Blessed is God, Who has fed and nourished us with His bountiful gifts by His grace and compassion always, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-before-any-work",
+      "title": "A Prayer Before any Work",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "before work",
+        "various occasions",
+        "work"
+      ],
+      "text": [
+        "O Lord Jesus Christ, the only-begotten Son of the eternal Father, You have said, “Without me you can do nothing.” In faith I embrace Your words, O Lord, and bow before Your goodness. Help me to complete the work that I am about to begin, for Your own glory: In the Name of the Father, and of the Son, and of the Holy Spirit. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-after-any-work",
+      "title": "A Prayer After any Work",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "after work",
+        "various occasions",
+        "work"
+      ],
+      "text": [
+        "You, O Christ, are Yourself the fulfillment of all good things. Fill my soul with joy and gladness, and save me, for You are all merciful."
+      ]
+    },
+    {
+      "id": "a-prayer-before-reading-the-holy-scriptures",
+      "title": "A Prayer Before Reading the Holy Scriptures",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "gospel",
+        "reading",
+        "scripture",
+        "various occasions"
+      ],
+      "text": [
+        "Illumine our hearts, O Master Who loves mankind, with the pure light of Your divine knowledge. Open the eyes of our mind to the understanding of Your gospel teachings. Implant also in us the fear of Your blessed commandments, that trampling down all carnal desires, we may enter upon a spiritual manner of living, both thinking and doing such things as are well-pleasing to You. For You are the illumination of our souls and bodies, O Christ our God; and to You we ascribe glory, together with Your Father, Who is from everlasting; and to Your all-holy, good, and life-creating Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-before-lessons-or-study",
+      "title": "A Prayer before Lessons or Study",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "lessons",
+        "school",
+        "study",
+        "various occasions"
+      ],
+      "text": [
+        "O Christ, the True Light, who enlightens and sanctifies every person coming into the world, let the light of Your countenance shine upon us that we may see Your unapproachable light; and guide our steps in the way of Your commandments, through the intercessions of Your all-holy Mother and of all the Saints. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-married-persons",
+      "title": "A Prayer of Married Persons",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "family",
+        "marriage",
+        "spouses",
+        "various occasions"
+      ],
+      "text": [
+        "Our bountiful God, we beseech You, listen to our humble prayer, that we may ever understand that the married state is holy and that we must keep it holy. Grant Your grace that we may never sin against the faithfulness and love of this marriage. Foster between us the spirit of understanding and of peace, so that no strife, quarrel or misunderstanding, may arise between us. Grant us health and our daily bread, whereby we may further serve You. Amen."
+      ]
+    },
+    {
+      "id": "prayer-of-a-widow-or-widower",
+      "title": "Prayer of A Widow or Widower",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "grief",
+        "spouse",
+        "various occasions",
+        "widow",
+        "widower"
+      ],
+      "text": [
+        "O Lord, Jesus Christ, Who through your mercy, resurrected the only son of the widow in Nain; I pray to You in need and all alone, putting my hope in God and asking for Your help. O You who fulfill our every need and complete everything we lack, grant me faith, courage, love, and understanding of Your Holy Will. Remember Your servant NAME, my departed spouse, in Your kingdom, always now and forever. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-a-person-seeking-to-live-purely-and-chastely",
+      "title": "A Prayer of a Person Seeking to Live Purely and Chastely",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "chastity",
+        "purity",
+        "temptation",
+        "various occasions"
+      ],
+      "text": [
+        "O Lord, Jesus Christ, my God and my Savior, You Yourself—together with Your Mother, the most holy Theotokos and Ever-Virgin Mary, and Your Forerunner and Prophet, John the Baptist—are an example for me of pure and chaste living. I ask You, therefore, O Compassionate and Loving Lord, to strengthen me when temptation troubles me and strong passions seek to overwhelm me. Grant that I may remain strong in virtue and innocent in all my thoughts, words, and deeds, only doing those things that please You. Grant me to grow in wisdom and understanding that I may serve You in purity and holiness all the days of my life.",
+        "Grant, also, that I may have the courage to witness to others on behalf of Your Gospel teachings. Remind me always that those who truly respect me will honor my personal commitment to live a pure and blameless life. I ask all this through the intercessions of Your most pure Mother, the Theotokos and Ever- Virgin Mary, together with Saint John the Baptist, and all the saints, especially my patron saint, Saint NAME. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-against-demonic-influence",
+      "title": "A Prayer Against Demonic Influence",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "demonic influence",
+        "protection",
+        "temptation",
+        "various occasions"
+      ],
+      "text": [
+        "O Almighty God, Who delivered Your people from the bondage of the adversary, and through Your Son cast down Satan like lightning, deliver me also from every influence of unclean spirits. Command Satan to depart far from me by the power of Your only-begotten Son. Rescue me from demonic imaginings and darkness. Fill me with the light of the Holy Spirit that I may be guarded against all snares of crafty demons. Grant that an angel will always go before me and lead me to the path of righteousness all the days of my life, to the honor of Your glorious Name: Father, Son, and Holy Spirit, now and forever. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-against-the-misuse-of-visual-media",
+      "title": "A Prayer Against the Misuse of Visual Media",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "media",
+        "purity",
+        "temptation",
+        "various occasions",
+        "visual media"
+      ],
+      "text": [
+        "O Lord, Jesus Christ, my God and Savior— through the prayers of Your Most Pure Mother, through the protection of the honorable, heavenly, bodiless powers (the holy angels), through the prayers of my Patron Saint, NAME, and through the prayers of all the saints—preserve me from all sinful pleasures in all my senses; help me not to look at evil, impure and illicit images that will harm my soul and separate me from You; help me to cut off the desire to indulge in such unchaste activity; and help me rather to do work that is productive and pleasing to You and to Your Church, so that I may glorify You, together with Your Father, Who is without beginning, and Your Most Holy, Good and Life-creating Spirit, now and ever and unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-when-facing-the-unknown",
+      "title": "A Prayer when Facing the Unknown",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "fear",
+        "future",
+        "unknown",
+        "various occasions"
+      ],
+      "text": [
+        "O Lord, You who steadied the hand of the Holy Apostle Peter as he began to sink into the stormy sea: If You are with me, no one is against me. Grant to me the shield of faith and the mighty armor of the Holy Spirit to protect me and guide me to do Your Holy Will. By Your grace, I follow You and the future I put into Your hands, O Lord. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-in-time-of-need-or-trouble",
+      "title": "A Prayer in Time of Need or Trouble",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "anxiety",
+        "fear",
+        "need",
+        "trouble",
+        "various occasions"
+      ],
+      "text": [
+        "O Almighty God, the Father of mercies and God of all comfort, come to my help and deliver me from this difficulty that besets me. I believe, Lord, that all trials of life are under Your care and that all things work for the good of those who love You. Take away from me fear, anxiety and distress. Help me to face and endure my difficulty with faith, courage and wisdom. Grant that this trial may bring me closer to You for You are my rock and refuge, my comfort and hope, my delight and joy. I trust in Your love and compassion. Blessed is Your name, Father, Son and Holy Spirit, now and forever. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-before-traveling",
+      "title": "A Prayer Before Traveling",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "journey",
+        "protection",
+        "travel",
+        "various occasions"
+      ],
+      "text": [
+        "O Lord Jesus Christ, our God and Savior, after Your Resurrection You traveled with Your disciples, Luke and Cleopas, on the road to Emmaus and set their hearts on fire with Your grace. Travel also with us and gladden our hearts with Your presence. We know, O Lord, that we are but humble pilgrims on this earth, seeking the citizenship which is in heaven. During our journey surround us with Your holy angels and keep us safe from seen and unseen dangers. Grant that we may carry out our plans and fulfill our expectations according to Your will. Help us to see the beauty of creation and to comprehend the wonder of Your truth in all things. For You are the Way, the Truth and the Life, and to You we give thanks, praise and glory forever. Amen."
+      ]
+    },
+    {
+      "id": "the-prayer-of-saint-macarius-the-egyptian",
+      "title": "The Prayer of Saint Macarius the Egyptian",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": [
+        "mercy",
+        "saint macarius",
+        "short",
+        "various occasions"
+      ],
+      "text": [
+        "Lord, as you will, and as you know, have mercy."
+      ]
+    },
+    {
+      "id": "the-lenten-prayer-of-saint-ephrem",
+      "title": "The Lenten Prayer of Saint Ephrem",
+      "category": "Seasons of the Year",
+      "type": "prayer",
+      "tags": [
+        "lent",
+        "repentance",
+        "saint ephrem",
+        "seasons of the year"
+      ],
+      "text": [
+        "O Lord and Master of my life, take from me the spirit of sloth, despair, lust of power, and idle talk. But give rather the spirit of chastity, humility, patience, and love to Your servant. Yes, O Lord and King, grant me to see my own transgressions, and not to judge my brother, for You are blessed, unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "the-paschal-troparion",
+      "title": "The Paschal Troparion",
+      "category": "Seasons of the Year",
+      "type": "prayer",
+      "tags": [
+        "easter",
+        "pascha",
+        "resurrection",
+        "seasons of the year"
+      ],
+      "text": [
+        "Christ is risen from the dead, trampling down death by death, and upon those in the tombs bestowing life."
+      ]
+    },
+    {
+      "id": "the-christmas-kontakion",
+      "title": "The Christmas Kontakion",
+      "category": "Seasons of the Year",
+      "type": "prayer",
+      "tags": [
+        "christmas",
+        "nativity",
+        "seasons of the year"
+      ],
+      "text": [
+        "Today the Virgin gives birth to the Transcendent One, and the earth offers a cave to the Unapproachable One. Angels, with shepherds, glorify Him; the wise men journey with the star. Since for our sake the Eternal God is born as a little child."
+      ]
+    },
+    {
+      "id": "to-the-mother-of-god-the-theotokos-and-ever-virgin-mary",
+      "title": "To the Mother of God, the Theotokos and Ever-Virgin, Mary",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "mary",
+        "mother of god",
+        "theotokos",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "Rejoice, O Virgin Theotokos, Mary, full of Grace, the Lord is with you. Blessed are you among women, and blessed is the fruit of your womb, for you have borne the Savior of our souls.",
+        "O Victorious Leader of triumphant hosts, we, your servants, delivered from evil, sing our grateful thanks to you, O Theotokos. As you possess invincible might, set us free from every calamity so that we may sing: Rejoice, O Unwedded Bride."
+      ]
+    },
+    {
+      "id": "a-prayer-to-saint-john-the-baptist",
+      "title": "A Prayer to Saint John the Baptist",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "forerunner",
+        "john the baptist",
+        "saint john",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O Saint John the Baptist, preacher of repentance and Baptizer of Christ, despise us not who repent, but, together with the angelic host of heaven, pray to the Master, our Lord Jesus Christ, for us unworthy ones. Pray for us in our despondency, weakness, and sorrow, for we have fallen into many troubles and we are weighed down by the stormy thoughts of our minds. We have become dens of evil works, having no end to our sinful habits—our mind is nailed to worldly things. What we will do, we do not know.",
+        "Nor do we know to whom we will flee, so that our souls might be saved, except to you, Saint John the Baptist, whom we know to be greater than any that are born before the Lord, except for the Theotokos, the Virgin Mother of God. For you, holy John, were found worthy to touch the head of Christ the King, “The Lamb of God Who takes away the sin of the world.” Therefore, pray for us before the Lord—pray that at least from this moment, the eleventh hour, we may bear the good burden and receive our reward among the last.",
+        "Yes, Baptizer of Christ, revered Forerunner, last of the Prophets, first of the Martyrs, mentor of ascetics and those who fast, guide of those who flee to the desert, teacher of purity and close friend of Christ, we pray to you and we flee to you for refuge. Cast us not away from your protection, but rather raise us up who are fallen into many sins. Renew our spirit through repentance, as it were a second baptism washing away sin. Preach penitence to the cleansing of our evil deeds. Wash us, who are stained with sin and help us to enter that place where nothing impure may enter—the Kingdom of Heaven.",
+        "Intercede for us before the throne of God, and show us how to give glory to the Father and to the Son and to the Holy Spirit, always, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-to-saint-nicholas",
+      "title": "A Prayer to Saint Nicholas",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "intercession",
+        "saint nicholas",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O All-praised and all-honored hierarch, great wonderworker, saint of Christ, Father Nicholas, man of God and faithful servant, man of love, chosen vessel, strong pillar of the Church, most brilliant lamp, star that illumines and enlightens the whole world: You are a righteous man that flourished like a palm tree planted in the courts of the Lord. Dwelling in Myra you have diffused the fragrance of myrrh, and you pour out the ever flowing myrrh of the grace of God. By your presence most holy Father, the sea was sanctified when your most miraculous relics were carried to the city of Bari, from the East to the West, to praise the name of the Lord.",
+        "O most superb and most marvelous wonderworker, speedy helper, fervent intercessor, good shepherd that saves the rational flock from all dangers: We glorify and magnify you as the hope of all Christians, a fountain of miracles, a defender of the faithful, a most wise teacher, a feeder of the hungry, the gladness of those that mourn, a clother of the naked, a healer of the sick, a pilot of those that sail the sea, and a liberator of prisoners.",
+        "We glorify and magnify you as the nourisher and protector of widows and orphans, a guardian of chastity, a gentle tutor of children, a support to the elderly, a guide of fasters, the rest of those that labor, and the abundant riches of the poor and needy. Father Nicholas, hear us that pray to you and flee to your protection. Show your mediation on our behalf with the Most High, and obtain through your God-pleasing intercessions all that is useful for the salvation of our souls and bodies. Keep this holy house, together with this region and every city and town, and every country, and the people that dwell therein, from all oppression through your help.",
+        "For we know that the prayer of a righteous man avails much for good; and, besides and beyond the most-holy Theotokos, we have you as a righteous mediator with the All-Merciful God, and to your fervent intercession and protection we humbly hasten. Do you, as a watchful and good shepherd, keep us from all enemies, pestilence, earthquake, hail, famine, flood, fire, the sword, the invasion of enemies, and in all our misfortunes and affliction do you give us a helping hand and open the doors of God’s compassion; for we are unworthy to look upon the height of heaven because of the abundance of our unrighteousness.",
+        "We are bound by the bonds of sin and have not done the will of our Creator nor kept His commandments. Wherefore, we bow the knees of our broken and humble hearts to our Maker, and we ask your fatherly intercession with Him. Lest we perish with our sins, deliver us from all evil, and from every adverse thing, direct our minds and strengthen our hearts in the Orthodox Faith, which, through your mediation and intercession, neither wounds, nor threats, nor plague, nor the wrath of our Creator shall lessen.",
+        "Grant that we may live a peaceful life here and see the good things in the land of the living, glorifying the Father, and the Son, and the Holy Spirit, one God glorified and worshipped in Trinity, now and forever, and unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-to-saint-herman-of-alaska",
+      "title": "A Prayer to Saint Herman of Alaska",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "alaska",
+        "america",
+        "saint herman",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O most wondrous favorite of God, our Blessed Father Herman, as a good laborer you did your great spiritual work in a harsh climate in this land. In the little things you were faithful in your service to God; as the Lord said, “You have been faithful over little, I will set you over much.” And now, when this word has been fulfilled for you, the Lord has set you over our whole Church in North America as her heavenly protector. We all call on you in fervent prayer: Pray for our Holy Church. May the Lord keep the Church pure in faith. May He reveal the Church as an adornment of our land. May He protect the Church from all dark powers of the enemy. May He drive out all adversaries.",
+        "May He grant us purity of Faith and beauty of soul. Grant us all the Spirit of peace and love, the Spirit of humility and meekness. Drive out the sin of pride. Save us from self-praise. Be our guard from false teachings. Give healing to the sick; to the sorrowful be a comfort. To those who hunger for spiritual truth, give the Heavenly Food, so that we may attain our true desire, receiving the good reward at the Final Judgment. With all the saints we will praise with song the Life-Creating Trinity—the ineffable Father, the true and only-begotten Son, the Comforter, Holy Spirit, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-to-saint-innocent-enlightener-of-alaska",
+      "title": "A Prayer to Saint Innocent, Enlightener of Alaska",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "alaska",
+        "america",
+        "saint innocent",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O Holy Hierarch and Father Innocent: The Lord chose you and ordained you to go and bring forth much fruit in His new vineyard on the frontiers of Russia and America. You dedicated your life to building up the Body of Christ in the New World and the Old, and brought the treasures of the Holy Apostolic Faith to Alaska and Siberia. We, your spiritual children, bow down before you and ask you to intercede for the Holy Orthodox Church in your native and adopted lands. As you were humble and kind, help us by your prayers to be patient and generous. As you persevered under difficult circumstances in a remote and lonely region, strengthen us in our dedication to Christ and His Gospel.",
+        "As you loved God and your flock and devoted your life in service to them, pray to Our Lord that our hearts may be filled with love for Him and our neighbor. You planted the seeds of the Orthodox Faith in Alaskan soil: implore the Lord that we may be accounted worthy to continue the work you so gloriously began, to bring the Light of Christ to every corner of America. You indicated the Way into the Kingdom of Heaven by your words and example: intercede for the salvation of all of us who venerate your holy memory.",
+        "By your holy prayers may we become worthy of the precious spiritual heritage which God has entrusted to us through you, and sing eternally the praises of the Holy, Consubstantial, and Life-Creating Trinity; the Father and Creator who is without Beginning; the Son, Our Lord and Savior who became Man in order to sanctify and save us; and the Comforter, the Holy Spirit who enlightens and enlivens all, now and ever and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-to-the-guardian-angel",
+      "title": "A Prayer to the Guardian Angel",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "angel",
+        "guardian angel",
+        "protection",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O angel of God, my holy guardian, given to me from heaven, enlighten me this day, and save me from all evil. Instruct me in doing good deeds, and set me on the path of salvation. Amen."
+      ]
+    },
+    {
+      "id": "another-prayer-to-the-guardian-angel",
+      "title": "Another Prayer to the Guardian Angel",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": [
+        "angel",
+        "guardian angel",
+        "protection",
+        "theotokos, saints & angels"
+      ],
+      "text": [
+        "O angel of Christ, holy guardian and protector of my soul and body, forgive me everything wherein I have offended you every day of my life, and protect me from all influence and temptation of the Evil One. May I never again anger God by my sins. Pray for me to the Lord, that He may make me worthy of the grace of the All-Holy Trinity, and of the blessed Mother of God, and of all the saints. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-basil-the-great",
+      "title": "A Prayer of Saint Basil the Great",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "preparation",
+        "saint basil"
+      ],
+      "text": [
+        "O Lord and Master Jesus Christ our God, the fountain of life and immortality, the Creator of everything visible and invisible, the eternal and everlasting Son of the eternal Father, You have come in these latter days because of the abundance of Your goodness, You have put on our human flesh and were crucified and buried for us thankless and graceless men, and through Your own blood You have renewed our human nature which is corrupted by sin. And now, O Immortal King, accept the repentance of me a sinner and incline Your ear to me and listen to my words: I have sinned, O Lord, I have sinned before heaven and before Your Face, and I am not worthy to look upon the height of Your Glory.",
+        "I have provoked Your goodness, I have transgressed Your commandments, I have not obeyed Your statutes. But, O Lord, since You do not remember evil, but are long-suffering and of great mercy, You have not given me over to destruction for my lawlessness, but have ever awaited my conversion. O Lover of men, You have said by Your prophets: \"I have no pleasure in the death of the wicked, but that the wicked turn from his way and live.\" For You do not wish, O Master, that the work of Your hands should perish, neither do You take pleasure in the destruction of men, but You desire that all men should be saved and come to the knowledge of the truth.",
+        "Therefore, although I am unworthy both of heaven and of earth and of this passing life, having wholly yielded myself to sin and defiled Your image, yet being Your creature and of Your making, I do not despair of my salvation in my wretchedness. But made bold by Your infinite compassion, I draw near. Receive me, O Christ, Lover of mankind, as You received the prostitute, the thief, the tax collector and the prodigal. Take away the heavy burden of my sins, for You take away the sins of the world, You heal the infirmities of men, You call to Yourself and give rest to those who labor and are heavy laden. You have not come to call the righteous, but sinners to repentance.",
+        "Cleanse me from every stain of flesh and spirit. Teach me to fulfil holiness in fear of You. That having the testimony of my own conscience clean, and having communion of Your holy things, I may be united with Your Body and Blood and may have You to dwell and abide in me, with the Father and Your Holy Spirit.",
+        "O Lord Jesus Christ my God, may the communion of Your most pure and life-creating mysteries not bring me into judgment, nor may I become weak in soul and body by partaking in an unworthy manner, but grant me to receive communion of Your holy things without condemnation even to my very last breath, and by them to receive communion of the Holy Spirit, provision for the journey of eternal life, and an acceptable answer at Your dread judgment seat; that I, together with all Your chosen ones, may also be a partaker of the incorruptible blessings which You have prepared for those who love You, O Lord, in whom You are glorified forever. Amen."
+      ]
+    },
+    {
+      "id": "another-prayer-of-saint-basil-the-great",
+      "title": "Another Prayer of Saint Basil the Great",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "preparation",
+        "saint basil"
+      ],
+      "text": [
+        "I know, O Lord, that I have communion unworthily of Your most pure Body and Your most precious Blood, that I am guilty and drink condemnation to myself not discerning Your Body and Blood, O my Christ and God. But daring upon Your generous loving-kindness I come to You who have said: \"He who eats my flesh and drinks my blood abides in me and I in him.\" Be merciful, therefore, O Lord, and do not rebuke me a sinner, but deal with me according to Your mercy, and let Your holy things be for my purification and healing, for enlightenment and protection, for the repulsion of every tempting thought and action of the devil which works spiritually in my fleshly members.",
+        "Let them be for boldness and love for Thee, for the correction and grounding of my life, for the increase of virtue and perfection, for the fulfillment of Your commandments, for the communion of the Holy Spirit, for the journey of eternal life, for a good and acceptable answer at Your dread judgment, but not for judgment or condemnation. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-john-chrysostom",
+      "title": "A Prayer of Saint John Chrysostom",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "preparation",
+        "saint john chrysostom"
+      ],
+      "text": [
+        "O Lord my God, I know that I am not worthy nor sufficiently pleasing that You should come under the roof of the house of my soul, for it is entirely desolate and fallen in ruin and You will not find in me a place worthy to lay Your head. But as You humbled Yourself from on high for our sake, so now humble Yourself to my lowliness. As You deigned to lie in a cavern, in a manger of dumb beasts, so now deign to enter in to the manger of my beastly soul, and into my soiled body. And as You did not disdain to enter and to eat with sinners in the house of Simon the leper, so now be pleased to enter into the house of my soul, humble and leprous and sinful.",
+        "And as You did not cast out the prostitute, the sinful woman who came to touch You, so have compassion on me a sinner who comes to touch You. And As You did not abhor the kiss of her sin-stained and unclean mouth, do not abhor my mouth, worse stained and more unclean than hers, nor my stained and shamed and unclean lips, nor my still more impure tongue.",
+        "But let the fiery coal of Your most pure Body and Your most precious Blood bring me sanctification, enlightenment and strengthening of my lowly soul and body, relief from the burden of my many transgressions, protection against every action of the devil, repulsion and victory over my wicked and evil habits, mortification of my passions, accomplishment of Your commandments, increase of Your divine grace, and inheritance of Your kingdom. For I do not come to You in presumption, O Christ my God, but made bold by Your unutterable goodness, lest I stray far away from Your flock, O Master, and become caught by the wolf of souls.",
+        "Therefore I pray You, O Master, for You alone are holy, sanctify my soul and body, my mind and heart, my muscles and bones. Renew me entirely. Implant fear of You in my fleshly members and let Your sanctification never be removed from me. Be my helper and defender, guide my life in peace and make me worthy to stand at Your right hand with all Your saints. By the prayers and supplications of Your most pure Mother, of Your spiritual servants, the most pure angelic powers, and of all the saints who from all ages have been well pleasing to You. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-john-of-damascus",
+      "title": "A Prayer of Saint John of Damascus",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "preparation",
+        "saint john of damascus"
+      ],
+      "text": [
+        "O Lord and Master Jesus Christ, our God, who alone has power to forgive the sins of all, do You, O Good One who loves mankind, forgive all the sins that I have committed in knowledge or in ignorance, and make me worthy to receive without condemnation Your divine, glorious, pure, and life-giving Mysteries; not to punishment or to increase of sin; but to purification and sanctification and a promise of Your Kingdom and the Life to come; as a protection and a help to overthrow the adversaries, and to blot out my many sins. For You are a God of Mercy and compassion and love toward mankind, and to You we give glory together with the Father and the Holy Spirit; now and ever, and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "another-prayer-of-saint-john-of-damascus",
+      "title": "Another Prayer of Saint John of Damascus",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "preparation",
+        "saint john of damascus"
+      ],
+      "text": [
+        "I stand before the gates of Your Temple, and yet I do not refrain from my evil thoughts. But do You, O Christ my God, who justified the publican, and had mercy on the Canaanite woman, and opened the gates of Paradise to the thief; open to me the compassion of Your love toward mankind, and receive me as I approach and touch You, like the sinful woman and the woman with the issue of blood; for the one, by embracing Your feet received the forgiveness of her sins, and the other by but touching the hem of Your garment was healed. And I, most sinful, dare to partake of Your whole Body.",
+        "Let me not be consumed but receive me as You received them, and enlighten the perceptions of my soul, consuming the accusations of my sins; through the intercessions of Her that without stain or corruption gave You birth, and of the heavenly Powers; for You are blessed unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-john-chrysostom-before-holy-communion",
+      "title": "A Prayer of Saint John Chrysostom",
+      "category": "Before Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "before holy communion",
+        "communion",
+        "i believe",
+        "preparation",
+        "saint john chrysostom"
+      ],
+      "text": [
+        "I believe, O Lord, and I confess that Thou art truly the Christ, the Son of the Living God, Who camest into the world to save sinners, of whom I am first. I believe also that this is truly Thine own most pure Body, and that this is truly Thine own precious Blood. Therefore I pray Thee: have mercy upon me and forgive my transgressions both voluntary and involuntary, of word and of deed, committed in knowledge or in ignorance. And make me worthy to partake without condemnation of Thy most pure Mysteries, for the remission of my sins, and unto life everlasting. Amen.",
+        "Of Thy Mystical Supper, O Son of God, accept me today as a communicant; for I will not speak of Thy Mystery to Thine enemies, neither like Judas will I give Thee a kiss; but like the thief will I confess Thee: Remember me, O Lord in Thy Kingdom. May the communion of Thy Holy Mysteries be neither to my judgment, nor to my condemnation, O Lord, but to the healing of soul and body. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-thanksgiving-after-holy-communion",
+      "title": "A Prayer of Thanksgiving after Holy Communion",
+      "category": "After Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "after holy communion",
+        "communion",
+        "thanksgiving"
+      ],
+      "text": [
+        "I thank You, O Lord my God, for You have not rejected me, a sinner, but have made me worthy to be a partaker of Your holy things. I thank You, for You have granted me, the unworthy, to commune of Your most pure and heavenly Gifts.",
+        "But, O Master, who loves mankind, Who for our sakes died and rose again and gave us these awesome and life-creating Mysteries for the good and sanctification of our souls and bodies; let them be for the healing of soul and body, for the repelling of every adversary, the illumining of the eyes of my heart, the peace of my spiritual powers, a faith unashamed, a love unfeigned, the fulfilling of wisdom, the observing of Your commandments, the receiving of Your divine grace, and the attaining of Your Kingdom. Preserved by them in Your holiness, may I always remember Your grace and live not for myself alone, but for You, our Master and Benefactor.",
+        "May I pass from this life in the hope of eternal life, and so attain to the everlasting rest, where the voice of those who feast is unceasing, and the gladness of those who behold the goodness of Your countenance is unending. For You are the true desire and the ineffable joy of those that love You, O Christ our God, and all creation sings Your praise forever. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-basil-the-great-after-holy-communion",
+      "title": "A Prayer of Saint Basil the Great",
+      "category": "After Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "after holy communion",
+        "communion",
+        "saint basil",
+        "thanksgiving"
+      ],
+      "text": [
+        "O Master Christ our God, King of the ages, Maker of all things: I thank You for all the good things You have given me, especially for the communion with Your most pure and life-creating Mysteries. I pray You, O gracious Lover of Mankind: preserve me under Your protection, beneath the shadow of Your wings. Enable me, even to my last breath, to partake worthily and with a pure conscience of Your holy Things, for the remission of sins and unto life eternal. For You are the Bread of Life, the Fountain of Holiness, the Giver of all Good; and to You we give glory, with the Father and the Holy Spirit, now and ever, and unto ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "a-prayer-of-saint-simeon-metaphrastes",
+      "title": "A Prayer of Saint Simeon Metaphrastes",
+      "category": "After Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "after holy communion",
+        "communion",
+        "saint simeon",
+        "thanksgiving"
+      ],
+      "text": [
+        "Freely You have given me Your Body for my food, O You Who are fire consuming the unworthy. Consume me not, O my Creator, but instead enter into my members, my veins, my heart. Consume the thorns of my transgressions. Cleanse my soul and sanctify my reasonings. Make firm my knees and body. Illumine my five senses. Nail me to the fear of You. Always protect, guard, and keep me from soul-destroying words and deeds. Cleanse me, purify me and adorn me. Give me understanding and illumination. Show me to be a temple of your One Spirit, and not the home of many sins. May every evil thing, every carnal passion, flee from me as from a fire as I become Your tabernacle through communion.",
+        "I offer You as intercessors all the saints: the leaders of the bodiless hosts, Your Forerunner, the wise apostles, and Your pure and blameless Mother. Accept their prayers in Your Love, O my Christ, and make me, Your servant, a child of light. For You are the only sanctification and light of our souls, O Good One, and to You, our Master and God, we give glory day by day."
+      ]
+    },
+    {
+      "id": "another-prayer",
+      "title": "Another Prayer",
+      "category": "After Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "after holy communion",
+        "communion",
+        "thanksgiving"
+      ],
+      "text": [
+        "O Lord Jesus Christ our God: let Your Holy Body be my eternal life; Your Precious Blood, my remission of sins. Let this Eucharist be my joy, health, and gladness. Make me, a sinner, worthy to stand at the right hand of Your glory at Your awesome second Coming, through the prayers of Your most pure Mother and of all the saints."
+      ]
+    },
+    {
+      "id": "a-prayer-to-the-theotokos",
+      "title": "A Prayer to the Theotokos",
+      "category": "After Holy Communion",
+      "type": "prayer",
+      "tags": [
+        "after holy communion",
+        "communion",
+        "thanksgiving",
+        "theotokos"
+      ],
+      "text": [
+        "O most holy Lady Theotokos, the light of my darkened soul, my hope, my protection, my refuge, my rest, and my joy; I thank you, for you have permitted me, the unworthy, to be a partaker of the most pure Body and precious Blood of your Son. Give the light of understanding to the eyes of my heart, you that gave birth to the True Light. Enliven me who am deadened by sin, you that gave birth to the Fountain of Immortality. Have mercy on me, O loving Mother of the merciful God. Grant me compunction and contrition of heart, humility in my thoughts, and a release from the slavery of my own reasonings.",
+        "And enable me, even to my last breath, to receive the sanctification of the most pure Mysteries, for the healing of soul and body. Grant me tears of repentance and confession, that I may glorify you all the days of my life, for you are blessed and most glorified forever. Amen."
+      ]
+    }
+  ]
+}
