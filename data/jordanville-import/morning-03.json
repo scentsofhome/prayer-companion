@@ -1,0 +1,67 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "jordanville-morning-prayers", "title": "Jordanville Morning Prayers" }
+  ],
+  "prayers": [
+    {
+      "id": "jordanville-morning-prayer-viii-to-our-lord-jesus-christ",
+      "title": "Morning Prayer VIII to Our Lord Jesus Christ",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "jesus christ"],
+      "text": [
+        "O my plenteously-merciful and all-merciful God, Lord Jesus Christ, through Thy great love Thou didst come down and become incarnate so that Thou mightest save all. And again, O Saviour, save me by Thy grace, I pray Thee. For if Thou shouldst save me for my works, this would not be grace or a gift, but rather a duty; yea, Thou Who art great in compassion and ineffable in mercy.",
+        "For he that believeth in Me, Thou hast said, O my Christ, shall live and never see death. If, then, faith in Thee saveth the desperate, behold, I believe, save me, for Thou art my God and Creator. Let faith instead of works be imputed to me, O my God, for Thou wilt find no works which could justify me.",
+        "But may my faith suffice instead of all works, may it answer for, may it acquit me, may it make me a partaker of Thine eternal glory. And let Satan not seize me and boast, O Word, that he hath torn me from Thy hand and fold. But whether I desire it or not, save me, O Christ my Saviour, forestall me quickly, quickly, for I perish.",
+        "Thou art my God from my mother's womb. Vouchsafe me, O Lord, to love Thee now as fervently as I once loved sin itself, and also to work for Thee without idleness, diligently, as I worked before for deceptive Satan. But supremely shall I work for Thee, my Lord and God, Jesus Christ, all the days of my life, now and ever, and unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-morning-prayer-ix-to-the-holy-guardian-angel",
+      "title": "Morning Prayer IX to the Holy Guardian Angel",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "guardian angel"],
+      "text": [
+        "O holy angel that standeth by my wretched soul and my passionate life, forsake not me a sinner, nor shrink from me because of mine intemperance. Give no place for the cunning demon to master me through the violence of my mortal body, strengthen my poor and feeble hand, and guide me in the way of salvation.",
+        "Yea, O holy angel of God, guardian and protector of my wretched soul and body, forgive me all wherein I have offended thee all the days of my life; and if I have sinned during the past night, protect me during the present day, and guard me from every temptation of the enemy, that I may not anger God by any sin. And pray to the Lord for me, that He may establish me in His fear, and show me, His servant, to be worthy of His goodness. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-morning-prayer-x-to-the-most-holy-theotokos",
+      "title": "Morning Prayer X to the Most Holy Theotokos",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "theotokos"],
+      "text": [
+        "O my most holy lady Theotokos, through thy holy and all-powerful prayers, banish from me, thy lowly and wretched servant, despondency, forgetfulness, folly, carelessness, and all filthy, evil, and blasphemous thoughts from my wretched heart and my darkened mind.",
+        "And quench the flame of my passions, for I am poor and wretched, and deliver me from many and cruel memories and deeds, and free me from all their evil effects. For blessed art thou by all generations, and glorified is thy most honourable name unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-prayer-for-the-salvation-of-russia",
+      "title": "Prayer for the Salvation of Russia",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "russia", "intercession"],
+      "text": ["O Lord Jesus Christ our God, forgive our iniquities. Through the intercessions of Thy most pure Mother, save the suffering Russian people from the yoke of the godless authority. Amen."]
+    },
+    {
+      "id": "jordanville-prayerful-invocation-of-the-saint-whose-name-we-bear",
+      "title": "Prayerful Invocation of the Saint Whose Name We Bear",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "patron saint", "intercession"],
+      "text": ["Pray unto God for me, O holy God-pleaser N., for I fervently flee unto Thee, the speedy helper and intercessor for my soul."]
+    },
+    {
+      "id": "jordanville-troparion-to-the-cross",
+      "title": "Troparion to the Cross",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "cross"],
+      "text": ["Save, O Lord, Thy people, and bless Thine inheritance; grant Thou victory to Orthodox Christians over enemies; and by the power of Thy Cross do Thou preserve Thy commonwealth."]
+    }
+  ]
+}
