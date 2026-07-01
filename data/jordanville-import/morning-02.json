@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "jordanville-morning-prayers", "title": "Jordanville Morning Prayers" }
+  ],
+  "prayers": [
+    {
+      "id": "jordanville-morning-prayer-v-of-saint-basil-the-great",
+      "title": "Morning Prayer V of Saint Basil the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint basil"],
+      "text": [
+        "O Lord Almighty, God of hosts and of all flesh, Who dwellest on high and lookest down on things that are lowly, Who searchest the heart and innermost being, and clearly foreknowest the secrets of men; O unoriginate and everlasting Light, with Whom is no variableness, neither shadow of turning: Do Thou, O Immortal King, receive our supplications which we, daring because of the multitude of Thy compassions, offer Thee at the present time from defiled lips; and forgive us our sins, in deed, word, and thought, whether committed by us knowingly or in ignorance, and cleanse us from every defilement of flesh and spirit.",
+        "And grant us to pass through the night of the whole present life with watchful heart and sober thought, ever expecting the coming of the bright and appointed day of Thine Only-begotten Son, our Lord and God and Saviour, Jesus Christ, whereon the Judge of all shall come with glory to reward each according to his deeds.",
+        "May we not be found fallen and idle, but watching, and upright in activity, ready to accompany Him into the joy and divine palace of His glory, where there is the ceaseless sound of those that keep festival, and the unspeakable delight of those that behold the ineffable beauty of Thy countenance. For Thou art the true Light that enlightenest and sanctifiest all, and all creation doth hymn Thee unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-morning-prayer-vi-of-saint-basil-the-great",
+      "title": "Morning Prayer VI of Saint Basil the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint basil"],
+      "text": [
+        "We bless Thee, O Most High God and Lord of mercy, Who ever doest with us things both great and inscrutable, both glorious and awesome, of which there is no measure; Who grantest to us sleep for rest from our infirmities, and relaxation from the labours of our much-toiling flesh.",
+        "We thank Thee that Thou hast not destroyed us with our iniquities, but hast shown Thy loving-kindness to man as usual, and while we were lying in despair upon our beds, Thou hast raised us up that we might glorify Thy dominion.",
+        "Wherefore, we implore Thy boundless goodness: Enlighten the eyes of our understanding and raise up our mind from the heavy sleep of indolence; open our mouth and fill it with Thy praise, that we may be able steadily to hymn and confess Thee, Who art God glorified in all and by all, the unoriginate Father, with Thine Only-begotten Son, and Thine All-holy and good and life-creating Spirit, now and ever, and unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-morning-prayer-vii-to-the-most-holy-theotokos",
+      "title": "Morning Prayer VII to the Most Holy Theotokos",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "theotokos"],
+      "text": [
+        "I sing of thy grace, O Sovereign Lady, and I pray thee to grace my mind. Teach me to step aright in the way of Christ's commandments. Strengthen me to keep awake in song, and drive away the sleep of despondency. O Bride of God, by thy prayers release me, bound with the bonds of sin. Guard me by night and by day, and deliver me from foes that defeat me.",
+        "O bearer of God the Life-giver, enliven me who am deadened by passions. O bearer of the Unwaning Light, enlighten my blinded soul. O marvellous palace of the Master, make me to be a house of the Divine Spirit. O bearer of the Healer, heal the perennial passions of my soul. Guide me to the path of repentance, for I am tossed in the storm of life.",
+        "Deliver me from eternal fire, and from evil worms, and from Tartarus. Let me not be exposed to the rejoicing of demons, guilty as I am of many sins. Renew me, grown old from senseless sins, O most immaculate one. Present me untouched by all torments, and pray for me to the Master of all. Vouchsafe me to find the joys of heaven with all the saints.",
+        "O most holy Virgin, hearken unto the voice of thine unprofitable servant. Grant me torrents of tears, O most pure one, to cleanse my soul from impurity. I offer the groans of my heart to thee unceasingly, strive for me, O Sovereign Lady. Accept my service of supplication and offer it to compassionate God.",
+        "O thou who art above the angels, raise me above this world's confusion. O Light-bearing heavenly tabernacle, direct the grace of the Spirit in me. I raise my hands and lips in thy praise, defiled as they are by impurity, O all-immaculate one. Deliver me from soul-corrupting evils, and fervently intercede with Christ, to Whom is due honour and worship, now and ever, and unto the ages of ages. Amen."
+      ]
+    }
+  ]
+}
