@@ -1,0 +1,74 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "jordanville-morning-prayers", "title": "Jordanville Morning Prayers" }
+  ],
+  "prayers": [
+    {
+      "id": "jordanville-the-prayer-of-the-publican",
+      "title": "The Prayer of the Publican",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "repentance"],
+      "text": ["O God, be merciful to me a sinner."]
+    },
+    {
+      "id": "jordanville-troparia-to-the-holy-trinity",
+      "title": "Troparia to the Holy Trinity",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "holy trinity"],
+      "text": [
+        "Having risen from sleep, we fall down before Thee, O Good One, and the angelical hymn we cry aloud to Thee, O Mighty One: Holy, Holy, Holy art Thou, O God; through the Theotokos, have mercy on us.",
+        "Glory to the Father, and to the Son, and to the Holy Spirit.",
+        "From bed and sleep hast Thou raised me up, O Lord: enlighten my mind and heart, and open my lips that I may hymn Thee, O Holy Trinity: Holy, Holy, Holy art Thou, O God; through the Theotokos, have mercy on us.",
+        "Both now and ever, and unto the ages of ages. Amen.",
+        "Suddenly the Judge shall come, and the deeds of each shall be laid bare; but with fear do we cry at midnight: Holy, Holy, Holy art Thou, O God; through the Theotokos, have mercy on us.",
+        "Lord, have mercy. Twelve."
+      ]
+    },
+    {
+      "id": "jordanville-prayer-of-saint-basil-to-the-most-holy-trinity",
+      "title": "Prayer of Saint Basil the Great to the Most Holy Trinity",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint basil", "holy trinity"],
+      "text": [
+        "As I rise from sleep, I thank Thee, O Holy Trinity, for through Thy great goodness and patience Thou wast not angry with me, an idler and sinner, nor hast Thou destroyed me with mine iniquities, but hast shown Thy usual love for mankind; and when I was prostrate in despair, Thou hast raised me up to keep the morning watch and glorify Thy power.",
+        "And now enlighten my mind's eye, and open my mouth that I may meditate on Thy words, and understand Thy commandments, and do Thy will, and hymn Thee in heartfelt confession, and sing praises to Thine all-holy name: of the Father, and of the Son, and of the Holy Spirit, now and ever, and unto the ages of ages. Amen."
+      ]
+    },
+    {
+      "id": "jordanville-morning-prayer-i-of-saint-macarius-the-great",
+      "title": "Morning Prayer I of Saint Macarius the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint macarius"],
+      "text": ["O God, cleanse me a sinner, for I have never done anything good in Thy sight; but deliver me from the evil one, and let Thy will be done in me, that I may open mine unworthy mouth without condemnation, and praise Thy holy name: of the Father, and of the Son, and of the Holy Spirit, now and ever, and unto the ages of ages. Amen."]
+    },
+    {
+      "id": "jordanville-morning-prayer-ii-of-saint-macarius-the-great",
+      "title": "Morning Prayer II of Saint Macarius the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint macarius"],
+      "text": ["Having risen from sleep, I offer unto Thee, O Saviour, the midnight hymn, and falling down I cry unto Thee: Grant me not to fall asleep in the death of sin, but have compassion on me, O Thou Who wast voluntarily crucified, and hasten to raise me who am reclining in idleness, and save me in prayer and intercession; and after the night's sleep shine upon me a sinless day, O Christ God, and save me."]
+    },
+    {
+      "id": "jordanville-morning-prayer-iii-of-saint-macarius-the-great",
+      "title": "Morning Prayer III of Saint Macarius the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint macarius"],
+      "text": ["Having risen from sleep, I hasten to Thee, O Master, Lover of mankind, and by Thy loving-kindness, I strive to do Thy work, and I pray to Thee: Help me at all times, in everything, and deliver me from every worldly, evil thing and every impulse of the devil, and save me, and lead me into Thine eternal kingdom. For Thou art my Creator, and the Giver and Provider of everything good, and in Thee is all my hope, and unto Thee do I send up glory, now and ever, and unto the ages of ages. Amen."]
+    },
+    {
+      "id": "jordanville-morning-prayer-iv-of-saint-macarius-the-great",
+      "title": "Morning Prayer IV of Saint Macarius the Great",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "saint macarius"],
+      "text": ["O Lord, Who in Thine abundant goodness and Thy great compassion hast granted me, Thy servant, to go through the time of the night that is past without attack from any opposing evil: Do Thou Thyself, O Master, Creator of all things, vouchsafe me by Thy true light and with an enlightened heart to do Thy will, now and ever, and unto the ages of ages. Amen."]
+    }
+  ]
+}
