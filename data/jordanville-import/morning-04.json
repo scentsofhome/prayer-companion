@@ -1,0 +1,39 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "jordanville-morning-prayers", "title": "Jordanville Morning Prayers" }
+  ],
+  "prayers": [
+    {
+      "id": "jordanville-morning-intercessions-for-the-living",
+      "title": "Morning Intercessions for the Living",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "intercession", "living"],
+      "text": [
+        "Remember, O Lord Jesus Christ our God, Thy mercies and compassions which are from the ages, for the sake of which Thou didst become man and didst will to endure crucifixion and death for the salvation of those that rightly believe in Thee; and having risen from the dead didst ascend into the heavens and sittest at the right hand of God the Father, and regardest the humble entreaties of those that call upon Thee with all their heart; incline Thine ear, and hearken unto the humble supplication of me, Thine unprofitable servant, as an odor of spiritual fragrance, which I offer unto Thee for all Thy people.",
+        "And first, remember Thy Holy, Catholic, and Apostolic Church, which Thou hast provided through Thine honourable Blood, and establish, and strengthen, and expand, increase, pacify, and keep Her unconquerable by the gates of hades; calm the dissensions of the churches, quench the raging of the nations, and quickly destroy and uproot the rising of heresy, and bring them to nought by the power of Thy Holy Spirit.",
+        "Save, O Lord, and have mercy on the Russian Land and her Orthodox people both in the homeland and in the diaspora, this land and its authorities.",
+        "Save, O Lord, and have mercy on the holy Eastern Orthodox patriarchs, most reverend metropolitans, Orthodox archbishops and bishops, and all who serve in the Church, whom Thou hast appointed to shepherd Thy rational flock, and through their prayers have mercy and save me, a sinner.",
+        "Save, O Lord, and have mercy on my spiritual father N., and through his holy prayers forgive my sins.",
+        "Save, O Lord, and have mercy on my parents, Names, brothers and sisters, and my kindred according to the flesh, and all the neighbours of my family and friends, and grant them Thine earthly and spiritual good things.",
+        "Save, O Lord, and have mercy on the aged and the young, the poor and the orphans and widows, and those in sickness and sorrow, misfortune and tribulation, those in difficult circumstances and in captivity, in prisons and dungeons, and especially those of Thy servants that are persecuted for Thy sake and the Orthodox Faith by godless peoples, by apostates, and by heretics; and remember them, visit, strengthen, comfort, and by Thy power quickly grant them relief, freedom, and deliverance.",
+        "Save, O Lord, and have mercy on them that hate and wrong me, and make temptation for me, and let them not perish because of me, a sinner.",
+        "Illumine with the light of awareness the apostates from the Orthodox Faith, and those blinded by pernicious heresies, and number them with Thy Holy, Apostolic, Catholic Church."
+      ]
+    },
+    {
+      "id": "jordanville-morning-intercessions-for-the-departed",
+      "title": "Morning Intercessions for the Departed",
+      "category": "Jordanville Morning Prayers",
+      "type": "prayer",
+      "tags": ["jordanville", "morning", "intercession", "departed"],
+      "text": [
+        "Remember, O Lord, those that have departed this life, Orthodox kings and queens, princes and princesses, most holy patriarchs, most reverend metropolitans, Orthodox archbishops and bishops, those in priestly and clerical orders of the Church, and those that have served Thee in the monastic order, and grant them rest with the saints in Thine eternal tabernacles.",
+        "Remember, O Lord, the souls of Thy departed servants, my parents, Names, and all my kindred according to the flesh; and forgive them all transgressions, voluntary and involuntary, granting them the kingdom and a portion of Thine eternal good things, and the delight of Thine endless and blessed life.",
+        "Remember, O Lord, also all our fathers and brethren, and sisters, and those that lie here, and all Orthodox Christians that departed in the hope of resurrection and life eternal, and settle them with Thy saints, where the light of Thy countenance shall visit them, and have mercy on us, for Thou art good and the Lover of mankind.",
+        "Grant, O Lord, remission of sins to all our fathers, brethren, and sisters that have departed before us in the faith and hope of resurrection, and make their memory to be eternal."
+      ]
+    }
+  ]
+}
