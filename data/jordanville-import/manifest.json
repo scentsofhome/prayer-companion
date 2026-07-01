@@ -1,7 +1,1 @@
-{
-  "version": "1.0.0",
-  "source": "Uploaded prayers_plain_text.txt",
-  "chunks": [
-    "morning-01.json"
-  ]
-}
+{"version":"1.0.0","source":"uploaded-prayer-text","chunks":["morning-01.json","morning-02.json"]}
