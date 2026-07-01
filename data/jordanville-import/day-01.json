@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "categories": [
+    { "id": "jordanville-prayers-during-the-day", "title": "Jordanville Prayers During the Day" }
+  ],
+  "prayers": [
+    {
+      "id": "jordanville-prayer-before-lessons",
+      "title": "Prayer Before Lessons",
+      "category": "Jordanville Prayers During the Day",
+      "type": "prayer",
+      "tags": ["jordanville", "study", "lessons"],
+      "text": ["O Most-good Lord! Send down upon us the grace of Thy Holy Spirit, Who granteth gifts and strengtheneth the powers of our souls, so that by attending to the teaching given us, we may grow to the glory of Thee, our Creator, to the comfort of our parents, and to the service of the Church and our native land."]
+    },
+    {
+      "id": "jordanville-prayer-after-lessons",
+      "title": "Prayer After Lessons",
+      "category": "Jordanville Prayers During the Day",
+      "type": "prayer",
+      "tags": ["jordanville", "study", "lessons", "thanksgiving"],
+      "text": ["We thank Thee, O Creator, that Thou hast vouchsafed us Thy grace to attend instruction. Bless our leaders, parents, and instructors who are leading us to an awareness of good, and grant us power and strength to continue this study."]
+    }
+  ]
+}
