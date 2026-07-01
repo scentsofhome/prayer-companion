@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orthodox-prayer-book-v20-jordanville-import';
+const CACHE_NAME = 'orthodox-prayer-book-v21-jordanville-import';
 const APP_SHELL = [
   './',
   './index.html',
@@ -11,6 +11,7 @@ const APP_SHELL = [
   './data/jordanville-import/manifest.json',
   './data/jordanville-import/morning-01.json',
   './data/jordanville-import/morning-02.json',
+  './data/jordanville-import/morning-03.json',
   './data/psalm-50-51/01.txt',
   './data/psalm-50-51/02.txt',
   './data/psalm-50-51/03.txt',
