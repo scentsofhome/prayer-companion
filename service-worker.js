@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orthodox-prayer-book-v18-supplemental-prayers';
+const CACHE_NAME = 'orthodox-prayer-book-v19-jordanville-import';
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,6 +8,8 @@ const APP_SHELL = [
   './src/extra-prayers.js',
   './data/prayers.json',
   './data/prayer-rules.json',
+  './data/jordanville-import/manifest.json',
+  './data/jordanville-import/morning-01.json',
   './data/psalm-50-51/01.txt',
   './data/psalm-50-51/02.txt',
   './data/psalm-50-51/03.txt',
