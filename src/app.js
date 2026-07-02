@@ -5,7 +5,8 @@ function storageBundle(version) {
     favorites: `prayerRule.${version}.favorites`,
     appearance: `prayerRule.${version}.appearance`,
     personal: `prayerRule.${version}.personal`,
-    reader: `prayerRule.${version}.reader`
+    reader: `prayerRule.${version}.reader`,
+    history: `prayerRule.${version}.history`
   };
 }
 const STORAGE = storageBundle('v17serene');
@@ -68,9 +69,11 @@ let selectedOffice = state.selectedOffice || (new Date().getHours() < 15 ? 'Morn
 let ruleLength = state.ruleLength || 'standard';
 let seasonMode = state.seasonMode || 'ordinary';
 let communionMode = state.communionMode || 'none';
+let plannerMode = state.plannerMode || 'balanced';
 let favorites = new Set(storedJSON('favorites', []) || []);
 let personal = Object.assign({living:[], sick:[], departed:[], traveling:[], family:[]}, storedJSON('personal', {}) || {});
 let appearance = Object.assign({theme: 'dark', clarity: 17, frost: 22, reflection: 36, scale: 1, leading: 1.72, width: 720}, storedJSON('appearance', {}) || {});
+let prayerHistory = storedJSON('history', {}) || {};
 
 function safeJSON(raw, fallback = null) { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function storedJSON(kind, fallback = null) {
@@ -98,14 +101,14 @@ function weekIndex(date = new Date()) { return String((Math.floor(dayOfYear(date
 function uniqueIds(ids) { return [...new Set((ids || []).filter(Boolean))]; }
 function prayer(id) { return byId.get(id); }
 function showToast(message) { toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove('show'), 1500); }
-function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, seasonMode, communionMode })); }
+function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, seasonMode, communionMode, plannerMode })); }
 function saveFavorites() { localStorage.setItem(STORAGE.favorites, JSON.stringify([...favorites])); }
 function savePersonal() { localStorage.setItem(STORAGE.personal, JSON.stringify(personal)); }
 function saveAppearance() { localStorage.setItem(STORAGE.appearance, JSON.stringify(appearance)); }
 function saveReaderProgress() {
   if (reader?.kind !== 'rule') return;
   if (reader.index <= 0) { clearSavedReader(); return; }
-  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, season: seasonMode, communion: communionMode, index: reader.index, savedAt: Date.now() }));
+  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, savedAt: Date.now() }));
 }
 function getSavedReader() { return safeJSON(localStorage.getItem(STORAGE.reader), safeJSON(localStorage.getItem(LEGACY_STORAGE.reader), safeJSON(localStorage.getItem(OLDER_STORAGE.reader), safeJSON(localStorage.getItem(OLDEST_STORAGE.reader), null)))); }
 function clearSavedReader() { [STORAGE.reader, LEGACY_STORAGE.reader, OLDER_STORAGE.reader, OLDEST_STORAGE.reader].forEach(key => localStorage.removeItem(key)); }
@@ -114,7 +117,7 @@ function savedReaderForCurrentRule(steps = currentSteps()) {
   if (!saved) return null;
   const index = Number(saved.index);
   const savedAt = Number(saved.savedAt || 0);
-  const matchesRule = saved.day === selectedDay && saved.office === selectedOffice && saved.length === ruleLength && saved.season === seasonMode && saved.communion === communionMode;
+  const matchesRule = saved.day === selectedDay && saved.office === selectedOffice && saved.length === ruleLength && saved.season === seasonMode && saved.communion === communionMode && (saved.plannerMode || 'balanced') === plannerMode;
   const freshEnough = savedAt && (Date.now() - savedAt) < 1000 * 60 * 60 * 24 * 21;
   if (!matchesRule || !freshEnough || !Number.isFinite(index) || index <= 0 || index >= steps.length) return null;
   return { ...saved, index };
@@ -157,6 +160,155 @@ async function init() {
   }
 }
 
+function prayerWords(p) { return (p?.text || []).join(' ').trim().split(/\s+/).filter(Boolean).length; }
+function estimatedMinutesForPrayer(p) { return Number(p?.estimatedMinutes) || Math.max(.5, prayerWords(p) / 130); }
+function idsMinutes(ids) { return (ids || []).reduce((sum, id) => sum + estimatedMinutesForPrayer(prayer(id)), 0); }
+function arrayValue(value) { return Array.isArray(value) ? value : []; }
+function normalizedList(items) { return uniqueIds(arrayValue(items).map(item => norm(item)).filter(Boolean)); }
+function plannerConfig() { return rulesData?.planner || {}; }
+function plannerModes() { return plannerConfig().modes || { balanced: { label: 'Balanced', sourceBias: {}, themeBias: {} } }; }
+function currentPlannerModeConfig() {
+  const modes = plannerModes();
+  if (!modes[plannerMode]) plannerMode = plannerConfig().defaultMode || Object.keys(modes)[0] || 'balanced';
+  return modes[plannerMode] || modes.balanced || {};
+}
+function plannerModeLabel() { return currentPlannerModeConfig().label || 'Balanced'; }
+function hashScore(value) {
+  let h = 2166136261;
+  const text = String(value || '');
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967295;
+}
+function targetThemes() {
+  const planner = plannerConfig();
+  return normalizedList([
+    ...(planner.dayThemes?.[selectedDay] || []),
+    ...(planner.officeThemes?.[selectedOffice] || []),
+    ...(planner.seasonThemes?.[seasonMode] || [])
+  ]);
+}
+function targetContexts() {
+  return normalizedList([selectedOffice, seasonMode, selectedDay, ruleLength]);
+}
+function plannerBudget() {
+  const fallback = ruleLength === 'extended' ? { min: 32, target: 48, max: 70 } : { min: 14, target: 22, max: 30 };
+  return plannerConfig().budgets?.[ruleLength] || fallback;
+}
+function isCommunionPrayer(p) { return /holy communion/i.test(p?.category || '') || arrayValue(p?.contexts).some(c => /communion/i.test(c)); }
+function isRuleFramePrayer(p) { return /Rule of Prayer/i.test(p?.category || '') && arrayValue(p?.contexts).some(c => /opening|closing/i.test(c)); }
+function recentPenalty(id) {
+  const last = Number(prayerHistory[id] || 0);
+  if (!last) return 0;
+  const limit = Number(plannerConfig().recentPenaltyDays || 14);
+  const days = (Date.now() - last) / 86400000;
+  return days < limit ? (limit - days) * 4 : 0;
+}
+function themeMatches(p, themes) {
+  const prayerThemes = normalizedList(p?.themes || []);
+  return themes.filter(theme => prayerThemes.includes(theme)).length;
+}
+function contextMatches(p, contexts) {
+  const prayerContexts = normalizedList([p?.category, ...(p?.tags || []), ...(p?.contexts || [])]);
+  return contexts.filter(context => prayerContexts.some(item => item.includes(context) || context.includes(item))).length;
+}
+function candidateScore(p, themes, contexts, mode, seed) {
+  const sourceBias = mode.sourceBias?.[p.source] || 0;
+  const themeBias = normalizedList(p.themes || []).reduce((sum, theme) => sum + (mode.themeBias?.[theme] || 0), 0);
+  const recency = recentPenalty(p.id);
+  return (Number(p.weight) || 50)
+    + sourceBias
+    + themeBias
+    + themeMatches(p, themes) * 28
+    + contextMatches(p, contexts) * 10
+    + (favorites.has(p.id) ? 8 : 0)
+    + hashScore(`${seed}:${p.id}`) * 7
+    - recency;
+}
+function rankedCandidates(ids, exclude, themes, contexts, remaining, options = {}) {
+  const mode = currentPlannerModeConfig();
+  const seed = `${todayKey()}:${selectedDay}:${selectedOffice}:${ruleLength}:${seasonMode}:${plannerMode}`;
+  const maxItem = options.maxItemMinutes || (ruleLength === 'extended' ? 22 : 7);
+  const softLimit = Math.max(remaining || 0, options.minRemaining || (ruleLength === 'extended' ? 8 : 3));
+  return ids
+    .map(id => prayer(id))
+    .filter(Boolean)
+    .filter(p => !exclude.has(p.id))
+    .filter(p => options.allowCommunion || !isCommunionPrayer(p))
+    .filter(p => options.allowRuleFrame || !isRuleFramePrayer(p))
+    .filter(p => estimatedMinutesForPrayer(p) <= Math.max(maxItem, softLimit))
+    .map(p => ({ p, score: candidateScore(p, themes, contexts, mode, seed) }))
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.p.id);
+}
+function pickPrayerIds(ids, count, exclude, themes, contexts, remaining, options = {}) {
+  const picked = [];
+  for (const id of rankedCandidates(ids, exclude, themes, contexts, remaining, options)) {
+    if (picked.length >= count) break;
+    const minutes = estimatedMinutesForPrayer(prayer(id));
+    if (!options.ignoreBudget && picked.length && minutes > remaining) continue;
+    picked.push(id);
+    exclude.add(id);
+    remaining -= minutes;
+  }
+  return picked;
+}
+function pickFromLibrary(count, exclude, themes, contexts, remaining) {
+  const pool = allPrayers
+    .filter(p => p.type === 'prayer')
+    .filter(p => !/Rule of Prayer/i.test(p.category || '') || /jesus prayer|publican/i.test(`${p.title} ${(p.tags || []).join(' ')}`))
+    .map(p => p.id);
+  return pickPrayerIds(pool, count, exclude, themes, contexts, remaining);
+}
+function buildDynamicBody(rules, day, office, cycle, seasonIds, opening, closing, communion) {
+  const budget = plannerBudget();
+  const mode = currentPlannerModeConfig();
+  const sectionPlan = plannerConfig().sections?.[ruleLength] || {};
+  const themes = targetThemes();
+  const contexts = targetContexts();
+  const bodyTarget = Math.max(4, budget.target - idsMinutes([...opening, ...closing, ...communion]));
+  const bodyMin = Math.max(2, budget.min - idsMinutes([...opening, ...closing, ...communion]));
+  const exclude = new Set(uniqueIds([
+    ...opening,
+    ...closing,
+    ...communion,
+    ...(rules.common.shortOpening || []),
+    ...(rules.common.fullOpening || []),
+    ...(rules.common.closing || []),
+    ...Object.values(rules.communionModes || {}).flatMap(mode => mode.ids || [])
+  ]));
+  const body = [];
+  const add = (ids) => {
+    ids.forEach(id => {
+      if (prayer(id) && !body.includes(id)) {
+        body.push(id);
+        exclude.add(id);
+      }
+    });
+  };
+  const remaining = () => Math.max(0, bodyTarget - idsMinutes(body));
+
+  add([...office.main, ...office.standardExtras]);
+  add(pickPrayerIds(day.daily || [], sectionPlan.day || 1, exclude, themes, contexts, remaining(), { minRemaining: 2, ignoreBudget: ruleLength === 'extended' }));
+  add(pickPrayerIds(cycle?.[selectedOffice.toLowerCase()] || [], sectionPlan.weekly || 1, exclude, themes, contexts, remaining(), { minRemaining: 2 }));
+  add(pickPrayerIds(seasonIds, sectionPlan.season || 0, exclude, themes, contexts, remaining(), { minRemaining: 2 }));
+  if (ruleLength === 'extended') {
+    add(pickPrayerIds(office.extendedExtras || [], sectionPlan.officeExtras || 3, exclude, themes, contexts, remaining(), { minRemaining: 6, ignoreBudget: true }));
+  }
+  add(pickFromLibrary(sectionPlan.dynamic || 2, exclude, themes, contexts, remaining()));
+  let guard = 0;
+  const fillTarget = mode.fillToTarget ? Math.min(bodyTarget, budget.max - idsMinutes([...opening, ...closing, ...communion])) : bodyMin;
+  while (idsMinutes(body) < fillTarget && guard < 12) {
+    guard++;
+    const next = pickFromLibrary(1, exclude, themes, contexts, Math.max(remaining(), 2));
+    if (!next.length) break;
+    add(next);
+  }
+
+  return body;
+}
 function buildRuleSegments() {
   const rules = rulesData;
   const day = rules.days[selectedDay] || rules.days.Sunday;
@@ -164,6 +316,7 @@ function buildRuleSegments() {
   const cycle = rules.weeklyCycle[weekIndex()];
   const psalms = day?.psalms?.[selectedOffice] || [];
   const seasonIds = seasonOptions[seasonMode]?.ids || [];
+  const communion = rules.communionModes[communionMode]?.ids || [];
   let opening = [];
   let body = [];
   let closing = rules.common.closing || [];
@@ -174,13 +327,12 @@ function buildRuleSegments() {
     closing = (rules.common.closing || []).slice(-1);
   } else if (ruleLength === 'extended') {
     opening = rules.common.fullOpening || [];
-    body = [...office.main, ...office.standardExtras, ...(day.daily || []), ...(cycle?.[selectedOffice.toLowerCase()] || []), ...seasonIds, ...office.extendedExtras];
+    body = buildDynamicBody(rules, day, office, cycle, seasonIds, opening, closing, communion);
   } else {
     opening = rules.common.fullOpening || [];
-    body = [...office.main, ...office.standardExtras, ...(day.daily || []).slice(0,1), ...(cycle?.[selectedOffice.toLowerCase()] || []).slice(0,1), ...seasonIds.slice(0,2)];
+    body = buildDynamicBody(rules, day, office, cycle, seasonIds, opening, closing, communion);
   }
 
-  const communion = rules.communionModes[communionMode]?.ids || [];
   return {
     opening: uniqueIds(opening),
     psalms,
@@ -205,7 +357,7 @@ function stepsFromSegments(segments) {
 }
 function currentSteps() { return stepsFromSegments(buildRuleSegments()); }
 function hasPersonalNames() { return Object.values(personal).some(list => list && list.length); }
-function ruleMinutes(steps) { return Math.max(3, Math.round(steps.reduce((sum, s) => sum + (s.type === 'prayer' ? ((prayer(s.id)?.text || []).join(' ').split(/\s+/).length / 130) : .5), 0))); }
+function ruleMinutes(steps) { return Math.max(3, Math.round(steps.reduce((sum, s) => sum + (s.type === 'prayer' ? estimatedMinutesForPrayer(prayer(s.id)) : .5), 0))); }
 function prayerOfDay() { const arr = allPrayers.filter(p => !/holy communion/i.test(p.category)); return arr[dayOfYear() % arr.length]; }
 function randomPrayer() { const arr = allPrayers; return arr[Math.floor(Math.random() * arr.length)]; }
 function setTodayDefaults() {
@@ -313,6 +465,7 @@ function renderHome() {
 function renderRule() {
   const seg = buildRuleSegments();
   const steps = stepsFromSegments(seg);
+  const stylePill = ruleLength === 'short' ? '' : `<span class="stat-pill">${esc(plannerModeLabel())}</span>`;
   let i = 0;
   const row = (title, sub) => `<div class="path-row"><div class="path-index">${++i}</div><div><div class="path-title">${esc(title)}</div><div class="path-sub">${esc(sub || '')}</div></div><div class="path-time">${i}/${steps.length}</div></div>`;
   const stepRows = steps.map(s => {
@@ -325,7 +478,7 @@ function renderRule() {
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
       <div class="top-actions"><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
-    <div class="quiet-card"><div class="stat-row"><span class="stat-pill">${esc(ruleLength)} rule</span><span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
+    <div class="quiet-card"><div class="stat-row"><span class="stat-pill">${esc(ruleLength)} rule</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
     <div class="rule-path">${stepRows}</div>
   </div>`;
 }
@@ -378,8 +531,10 @@ function renderPrayerDetail(id) {
   return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">Read</button></div><div class="reader-text" style="margin-top:32px;max-width:var(--reader-width)">${(p.text||[]).map(t => `<p>${esc(t)}</p>`).join('')}</div></div>`;
 }
 function renderSettings() {
+  const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
   return `<div class="view"><p class="micro-label">Settings</p><h1 class="page-title">Make it yours</h1><p class="subtitle">Change the rule, season, names, reader typography, and the liquid-glass surface.</p><div class="form-grid">
     <div class="form-card"><h3>Rule</h3><p>Choose how much to pray by default.</p><select class="form-control" data-setting="ruleLength"><option value="short">Short</option><option value="standard">Standard</option><option value="extended">Extended</option></select></div>
+    <div class="form-card"><h3>Rule Style</h3><p>Steer how the standard and extended rule choose prayers.</p><select class="form-control" data-setting="plannerMode">${plannerOptions}</select></div>
     <div class="form-card"><h3>Day</h3><p>Choose a day manually or return Home for today.</p><select class="form-control" data-setting="selectedDay">${dayNames.map(day => `<option value="${day}">${day}</option>`).join('')}</select></div>
     <div class="form-card"><h3>Office</h3><p>Morning or evening.</p><div class="segment"><button type="button" data-office-set="Morning">Morning</button><button type="button" data-office-set="Evening">Evening</button></div></div>
     <div class="form-card"><h3>Season</h3><p>Let the prayer rule follow a devotional season without changing the app appearance.</p><select class="form-control" data-setting="seasonMode">${Object.entries(seasonOptions).map(([id,s]) => `<option value="${esc(id)}">${esc(s.label)}</option>`).join('')}</select></div>
@@ -437,8 +592,16 @@ function nextReader() {
   renderReader();
 }
 function prevReader() { if (reader && reader.index > 0) { reader.index--; softTap(); renderReader(); } }
+function recordPrayerHistory(steps) {
+  const now = Date.now();
+  (steps || []).forEach(step => {
+    if (step.type === 'prayer' && step.id) prayerHistory[step.id] = now;
+  });
+  localStorage.setItem(STORAGE.history, JSON.stringify(prayerHistory));
+}
 function completeRule() {
   if (reader?.kind === 'rule') {
+    recordPrayerHistory(reader.steps);
     clearSavedReader();
     reader = null;
     document.body.classList.remove('reader-mode', 'ambient-mode');
@@ -485,6 +648,7 @@ screen.addEventListener('change', (e) => {
   if (key === 'selectedDay') selectedDay = setting.value;
   if (key === 'seasonMode') seasonMode = setting.value;
   if (key === 'communionMode') communionMode = setting.value;
+  if (key === 'plannerMode') plannerMode = setting.value;
   applyAppearance(); saveState(); render('settings');
 });
 
@@ -548,6 +712,7 @@ function syncSettingsUI() {
   const daySelect = screen.querySelector('[data-setting="selectedDay"]'); if (daySelect) daySelect.value = selectedDay;
   const seasonSelect = screen.querySelector('[data-setting="seasonMode"]'); if (seasonSelect) seasonSelect.value = seasonMode;
   const communionSelect = screen.querySelector('[data-setting="communionMode"]'); if (communionSelect) communionSelect.value = communionMode;
+  const plannerSelect = screen.querySelector('[data-setting="plannerMode"]'); if (plannerSelect) plannerSelect.value = plannerMode;
   screen.querySelectorAll('[data-theme-set]').forEach(b => b.classList.toggle('active', b.dataset.themeSet === appearance.theme));
   screen.querySelectorAll('[data-office-set]').forEach(b => b.classList.toggle('active', b.dataset.officeSet === selectedOffice));
 }

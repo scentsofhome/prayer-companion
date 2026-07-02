@@ -1,5 +1,5 @@
 {
-  "version": "15.0.0-jordanville-clean",
+  "version": "16.0.0-dynamic-planner",
   "ruleLengths": {
     "short": {
       "label": "Short",
@@ -256,5 +256,172 @@
     "jpb-before-lessons",
     "jpb-after-meals",
     "jpb-prayer-into-thy-hands"
-  ]
+  ],
+  "planner": {
+    "defaultMode": "balanced",
+    "recentPenaltyDays": 14,
+    "budgets": {
+      "short": {
+        "min": 3,
+        "target": 6,
+        "max": 9
+      },
+      "standard": {
+        "min": 14,
+        "target": 22,
+        "max": 30
+      },
+      "extended": {
+        "min": 32,
+        "target": 48,
+        "max": 70
+      }
+    },
+    "modes": {
+      "balanced": {
+        "label": "Balanced",
+        "description": "A coherent daily rule with a measured mix of familiar and Jordanville prayers.",
+        "sourceBias": {},
+        "themeBias": {}
+      },
+      "more-jordanville": {
+        "label": "More Jordanville",
+        "description": "Draw more often from the Jordanville material and fill closer to the full standard or extended rule.",
+        "sourceBias": {
+          "Jordanville Prayer Book": 18
+        },
+        "themeBias": {},
+        "fillToTarget": true
+      },
+      "penitential": {
+        "label": "More Penitential",
+        "description": "Favor repentance, mercy, watchfulness, and the Cross.",
+        "sourceBias": {},
+        "themeBias": {
+          "repentance": 22,
+          "mercy": 12,
+          "cross": 10,
+          "obedience": 6
+        }
+      },
+      "theotokos": {
+        "label": "More Theotokos",
+        "description": "Favor prayers to the Mother of God while preserving the daily anchors.",
+        "sourceBias": {},
+        "themeBias": {
+          "theotokos": 24,
+          "saints": 8,
+          "intercession": 5
+        }
+      },
+      "intercession": {
+        "label": "More Intercession",
+        "description": "Favor prayers for the living, the sick, the departed, family, and enemies.",
+        "sourceBias": {},
+        "themeBias": {
+          "intercession": 24,
+          "departed": 10,
+          "love": 8
+        }
+      }
+    },
+    "dayThemes": {
+      "Sunday": [
+        "resurrection",
+        "thanksgiving",
+        "faith"
+      ],
+      "Monday": [
+        "angels",
+        "protection",
+        "watchfulness"
+      ],
+      "Tuesday": [
+        "saints",
+        "repentance",
+        "forerunner"
+      ],
+      "Wednesday": [
+        "cross",
+        "repentance",
+        "obedience"
+      ],
+      "Thursday": [
+        "saints",
+        "intercession",
+        "work"
+      ],
+      "Friday": [
+        "cross",
+        "repentance",
+        "mercy"
+      ],
+      "Saturday": [
+        "departed",
+        "intercession",
+        "saints"
+      ]
+    },
+    "officeThemes": {
+      "Morning": [
+        "morning",
+        "thanksgiving",
+        "faith",
+        "obedience"
+      ],
+      "Evening": [
+        "evening",
+        "repentance",
+        "protection",
+        "mercy"
+      ]
+    },
+    "seasonThemes": {
+      "ordinary": [],
+      "great-lent": [
+        "repentance",
+        "mercy",
+        "cross"
+      ],
+      "pascha": [
+        "resurrection",
+        "thanksgiving"
+      ],
+      "nativity": [
+        "faith",
+        "thanksgiving",
+        "love"
+      ],
+      "nativity-fast": [
+        "repentance",
+        "obedience",
+        "love"
+      ],
+      "dormition-fast": [
+        "theotokos",
+        "repentance"
+      ],
+      "fasting": [
+        "repentance",
+        "obedience",
+        "mercy"
+      ]
+    },
+    "sections": {
+      "standard": {
+        "day": 1,
+        "weekly": 1,
+        "season": 2,
+        "officeExtras": 0,
+        "dynamic": 2
+      },
+      "extended": {
+        "day": 2,
+        "weekly": 2,
+        "season": 3,
+        "officeExtras": 3,
+        "dynamic": 4
+      }
+    }
+  }
 }

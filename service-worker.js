@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orthodox-prayer-book-v20-jordanville-clean';
+const CACHE_NAME = 'orthodox-prayer-book-v21-dynamic-planner';
 const APP_SHELL = [
   './',
   './index.html',
