@@ -1,5 +1,5 @@
 {
-  "version": "13.0.0",
+  "version": "14.0.0-jordanville",
   "ruleLengths": {
     "short": {
       "label": "Short",
@@ -27,7 +27,8 @@
         "a-prayer-of-saint-john-chrysostom",
         "a-prayer-of-saint-john-of-damascus",
         "another-prayer-of-saint-john-of-damascus",
-        "a-prayer-of-saint-john-chrysostom-before-holy-communion"
+        "a-prayer-of-saint-john-chrysostom-before-holy-communion",
+        "jordanville-order-of-preparation-for-holy-communion"
       ]
     },
     "thanksgiving": {
@@ -37,7 +38,8 @@
         "a-prayer-of-saint-basil-the-great-after-holy-communion",
         "a-prayer-of-saint-simeon-metaphrastes",
         "another-prayer",
-        "a-prayer-to-the-theotokos"
+        "a-prayer-to-the-theotokos",
+        "jordanville-prayers-after-holy-communion"
       ]
     }
   },
@@ -76,7 +78,9 @@
       "extendedExtras": [
         "a-prayer-for-any-hour-of-the-day",
         "a-longer-prayer-of-intercession",
-        "a-prayer-of-saint-philaret-metropolitan-of-moscow-asking-god-to-meet-our-needs"
+        "a-prayer-of-saint-philaret-metropolitan-of-moscow-asking-god-to-meet-our-needs",
+        "jordanville-morning-prayers",
+        "jordanville-selections-from-matins"
       ]
     },
     "Evening": {
@@ -95,7 +99,9 @@
       "extendedExtras": [
         "a-longer-prayer-of-intercession",
         "just-before-going-to-sleep",
-        "a-prayer-in-time-of-need-or-trouble"
+        "a-prayer-in-time-of-need-or-trouble",
+        "jordanville-prayers-before-sleep",
+        "jordanville-selections-from-vespers"
       ]
     }
   },
@@ -154,7 +160,8 @@
       },
       "daily": [
         "a-prayer-to-the-guardian-angel",
-        "another-prayer-to-the-guardian-angel"
+        "another-prayer-to-the-guardian-angel",
+        "jordanville-canon-to-the-guardian-angel"
       ]
     },
     "Tuesday": {
@@ -176,7 +183,8 @@
       },
       "daily": [
         "a-prayer-of-repentance",
-        "a-prayer-for-the-acceptance-of-gods-will"
+        "a-prayer-for-the-acceptance-of-gods-will",
+        "jordanville-canon-of-repentance"
       ]
     },
     "Thursday": {
@@ -198,7 +206,8 @@
       },
       "daily": [
         "the-lenten-prayer-of-saint-ephrem",
-        "a-prayer-of-repentance"
+        "a-prayer-of-repentance",
+        "jordanville-canon-of-repentance"
       ]
     },
     "Saturday": {
@@ -220,7 +229,8 @@
       },
       "daily": [
         "the-paschal-troparion",
-        "a-prayer-of-thanksgiving-after-holy-communion"
+        "a-prayer-of-thanksgiving-after-holy-communion",
+        "jordanville-troparia-kontakia-and-seasonal-hymns"
       ]
     }
   },
@@ -232,6 +242,9 @@
     "a-prayer-for-the-departed",
     "the-lenten-prayer-of-saint-ephrem",
     "the-prayer-of-saint-ioannikios",
-    "the-prayer-of-saint-macarius-the-egyptian"
+    "the-prayer-of-saint-macarius-the-egyptian",
+    "jordanville-prayers-during-the-day",
+    "jordanville-canon-of-repentance",
+    "jordanville-supplicatory-canon-to-the-theotokos"
   ]
 }
