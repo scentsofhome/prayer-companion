@@ -153,8 +153,14 @@ button { -webkit-tap-highlight-color: transparent; }
 .reader-mode .screen { overflow:hidden; }
 .form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; margin-top: 24px; }
 .form-card { border-radius: 28px; padding: 20px; border: 1px solid var(--hairline); background: rgba(255,255,255,.05); }
+.preset-card { grid-column: 1 / -1; }
 .form-card h3 { margin:0 0 8px; font-size: 18px; }
 .form-card p { color:var(--text-soft); margin:0 0 14px; line-height:1.45; }
+.preset-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 10px; }
+.preset-button { min-height: 74px; border-radius: 20px; padding: 13px 14px; text-align:left; display:grid; align-content:center; gap:4px; cursor:pointer; }
+.preset-button span { font-weight:950; }
+.preset-button em { color:var(--muted); font-style:normal; font-size:12px; line-height:1.25; }
+.preset-button.active { border-color: rgba(255,224,164,.62); background: linear-gradient(145deg, rgba(255,228,163,.22), rgba(201,120,36,.12)); }
 .form-control { width:100%; min-height: 48px; border-radius: 999px; color:var(--text); padding:0 14px; outline:0; }
 input.form-control { border: 1px solid var(--hairline); }
 select.form-control { border: 1px solid var(--hairline); }

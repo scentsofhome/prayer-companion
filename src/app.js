@@ -70,6 +70,7 @@ let ruleLength = state.ruleLength || 'standard';
 let seasonMode = state.seasonMode || 'ordinary';
 let communionMode = state.communionMode || 'none';
 let plannerMode = state.plannerMode || 'balanced';
+let activePreset = state.activePreset || 'custom';
 let favorites = new Set(storedJSON('favorites', []) || []);
 let personal = Object.assign({living:[], sick:[], departed:[], traveling:[], family:[]}, storedJSON('personal', {}) || {});
 let appearance = Object.assign({theme: 'dark', clarity: 17, frost: 22, reflection: 36, scale: 1, leading: 1.72, width: 720}, storedJSON('appearance', {}) || {});
@@ -101,7 +102,7 @@ function weekIndex(date = new Date()) { return String((Math.floor(dayOfYear(date
 function uniqueIds(ids) { return [...new Set((ids || []).filter(Boolean))]; }
 function prayer(id) { return byId.get(id); }
 function showToast(message) { toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove('show'), 1500); }
-function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, seasonMode, communionMode, plannerMode })); }
+function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, seasonMode, communionMode, plannerMode, activePreset })); }
 function saveFavorites() { localStorage.setItem(STORAGE.favorites, JSON.stringify([...favorites])); }
 function savePersonal() { localStorage.setItem(STORAGE.personal, JSON.stringify(personal)); }
 function saveAppearance() { localStorage.setItem(STORAGE.appearance, JSON.stringify(appearance)); }
@@ -166,6 +167,8 @@ function idsMinutes(ids) { return (ids || []).reduce((sum, id) => sum + estimate
 function arrayValue(value) { return Array.isArray(value) ? value : []; }
 function normalizedList(items) { return uniqueIds(arrayValue(items).map(item => norm(item)).filter(Boolean)); }
 function plannerConfig() { return rulesData?.planner || {}; }
+function presetsConfig() { return rulesData?.presets || {}; }
+function rulePresets() { return presetsConfig().items || {}; }
 function plannerModes() { return plannerConfig().modes || { balanced: { label: 'Balanced', sourceBias: {}, themeBias: {} } }; }
 function currentPlannerModeConfig() {
   const modes = plannerModes();
@@ -173,6 +176,22 @@ function currentPlannerModeConfig() {
   return modes[plannerMode] || modes.balanced || {};
 }
 function plannerModeLabel() { return currentPlannerModeConfig().label || 'Balanced'; }
+function activePresetData() { return rulePresets()[activePreset]; }
+function presetLabel() { return activePresetData()?.label || 'Custom'; }
+function setCustomPreset() { activePreset = 'custom'; }
+function applyPreset(id) {
+  const preset = rulePresets()[id];
+  if (!preset) return;
+  activePreset = id;
+  if (preset.ruleLength) ruleLength = preset.ruleLength;
+  if (preset.selectedOffice) selectedOffice = preset.selectedOffice;
+  if (preset.seasonMode) seasonMode = preset.seasonMode;
+  if (preset.communionMode) communionMode = preset.communionMode;
+  if (preset.plannerMode) plannerMode = preset.plannerMode;
+  clearSavedReader();
+  applyAppearance();
+  saveState();
+}
 function hashScore(value) {
   let h = 2166136261;
   const text = String(value || '');
@@ -364,6 +383,7 @@ function setTodayDefaults() {
   const now = new Date();
   selectedDay = dayNames[now.getDay()];
   selectedOffice = now.getHours() < 15 ? 'Morning' : 'Evening';
+  setCustomPreset();
   saveState();
 }
 function homeBeads(steps, savedIndex = 0, hasProgress = false) {
@@ -466,6 +486,7 @@ function renderRule() {
   const seg = buildRuleSegments();
   const steps = stepsFromSegments(seg);
   const stylePill = ruleLength === 'short' ? '' : `<span class="stat-pill">${esc(plannerModeLabel())}</span>`;
+  const presetPill = activePreset !== 'custom' ? `<span class="stat-pill">${esc(presetLabel())}</span>` : '';
   let i = 0;
   const row = (title, sub) => `<div class="path-row"><div class="path-index">${++i}</div><div><div class="path-title">${esc(title)}</div><div class="path-sub">${esc(sub || '')}</div></div><div class="path-time">${i}/${steps.length}</div></div>`;
   const stepRows = steps.map(s => {
@@ -478,7 +499,7 @@ function renderRule() {
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
       <div class="top-actions"><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
-    <div class="quiet-card"><div class="stat-row"><span class="stat-pill">${esc(ruleLength)} rule</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
+    <div class="quiet-card"><div class="stat-row">${presetPill}<span class="stat-pill">${esc(ruleLength)} rule</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
     <div class="rule-path">${stepRows}</div>
   </div>`;
 }
@@ -532,7 +553,9 @@ function renderPrayerDetail(id) {
 }
 function renderSettings() {
   const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
+  const presetCards = Object.entries(rulePresets()).map(([id, preset]) => `<button class="preset-button ${activePreset === id ? 'active' : ''}" type="button" data-rule-preset="${esc(id)}"><span>${esc(preset.label)}</span><em>${esc(preset.description || '')}</em></button>`).join('');
   return `<div class="view"><p class="micro-label">Settings</p><h1 class="page-title">Make it yours</h1><p class="subtitle">Change the rule, season, names, reader typography, and the liquid-glass surface.</p><div class="form-grid">
+    <div class="form-card preset-card"><h3>Presets</h3><p>Choose a ready-made rule shape.</p><div class="preset-grid">${presetCards}</div></div>
     <div class="form-card"><h3>Rule</h3><p>Choose how much to pray by default.</p><select class="form-control" data-setting="ruleLength"><option value="short">Short</option><option value="standard">Standard</option><option value="extended">Extended</option></select></div>
     <div class="form-card"><h3>Rule Style</h3><p>Steer how the standard and extended rule choose prayers.</p><select class="form-control" data-setting="plannerMode">${plannerOptions}</select></div>
     <div class="form-card"><h3>Day</h3><p>Choose a day manually or return Home for today.</p><select class="form-control" data-setting="selectedDay">${dayNames.map(day => `<option value="${day}">${day}</option>`).join('')}</select></div>
@@ -644,6 +667,7 @@ screen.addEventListener('change', (e) => {
   const setting = e.target.closest('[data-setting]');
   if (!setting) return;
   const key = setting.dataset.setting;
+  setCustomPreset();
   if (key === 'ruleLength') ruleLength = setting.value;
   if (key === 'selectedDay') selectedDay = setting.value;
   if (key === 'seasonMode') seasonMode = setting.value;
@@ -668,6 +692,8 @@ document.addEventListener('click', async (e) => {
   const suggestion = e.target.closest('[data-search-suggestion]');
   if (suggestion) { searchQuery = suggestion.dataset.searchSuggestion || ''; render('search'); return; }
   if (e.target.closest('[data-use-today]')) { setTodayDefaults(); render('home'); return; }
+  const preset = e.target.closest('[data-rule-preset]');
+  if (preset) { applyPreset(preset.dataset.rulePreset); render(currentView === 'rule' ? 'rule' : 'settings'); return; }
   if (e.target.closest('[data-scroll-explore]')) { screen.querySelector('#home-explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const readSingle = e.target.closest('[data-read-single]');
   if (readSingle) { startSinglePrayer(readSingle.dataset.readSingle); return; }
@@ -684,7 +710,7 @@ document.addEventListener('click', async (e) => {
   const theme = e.target.closest('[data-theme-set]');
   if (theme) { appearance.theme = theme.dataset.themeSet; applyAppearance(); render('settings'); return; }
   const office = e.target.closest('[data-office-set]');
-  if (office) { selectedOffice = office.dataset.officeSet; saveState(); render(currentView === 'settings' ? 'settings' : 'home'); return; }
+  if (office) { selectedOffice = office.dataset.officeSet; setCustomPreset(); saveState(); render(currentView === 'settings' ? 'settings' : 'home'); return; }
   const addName = e.target.closest('[data-add-name]');
   if (addName) { const key = addName.dataset.addName; const input = screen.querySelector(`[data-name-input="${key}"]`); const value = input?.value.trim(); if (value) { personal[key] = [...(personal[key] || []), value]; savePersonal(); render('settings'); } return; }
   const removeName = e.target.closest('[data-remove-name]');

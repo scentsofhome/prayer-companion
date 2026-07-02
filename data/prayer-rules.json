@@ -1,5 +1,5 @@
 {
-  "version": "16.0.0-dynamic-planner",
+  "version": "17.0.0-rule-presets",
   "ruleLengths": {
     "short": {
       "label": "Short",
@@ -421,6 +421,85 @@
         "season": 3,
         "officeExtras": 3,
         "dynamic": 4
+      }
+    }
+  },
+  "presets": {
+    "defaultPreset": "balanced-standard",
+    "items": {
+      "balanced-standard": {
+        "label": "Balanced Standard",
+        "description": "The ordinary daily rule with a calm mix of familiar and Jordanville prayers.",
+        "ruleLength": "standard",
+        "plannerMode": "balanced",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
+      },
+      "quiet-morning": {
+        "label": "Quiet Morning",
+        "description": "A steady morning rule with faith, gratitude, and a manageable shape.",
+        "ruleLength": "standard",
+        "selectedOffice": "Morning",
+        "plannerMode": "balanced",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
+      },
+      "evening-repentance": {
+        "label": "Evening Repentance",
+        "description": "An evening rule weighted toward repentance, mercy, and watchfulness.",
+        "ruleLength": "standard",
+        "selectedOffice": "Evening",
+        "plannerMode": "penitential",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
+      },
+      "busy-day": {
+        "label": "Busy Day",
+        "description": "A short, stable rule for days when attention and time are thin.",
+        "ruleLength": "short",
+        "plannerMode": "balanced",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
+      },
+      "jordanville-full": {
+        "label": "Jordanville Full",
+        "description": "A longer rule that draws deeply from the Jordanville prayer book.",
+        "ruleLength": "extended",
+        "plannerMode": "more-jordanville",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
+      },
+      "before-communion": {
+        "label": "Before Communion",
+        "description": "A preparation rule with Communion prayers before the closing.",
+        "ruleLength": "standard",
+        "plannerMode": "penitential",
+        "seasonMode": "ordinary",
+        "communionMode": "preparation"
+      },
+      "after-communion": {
+        "label": "After Communion",
+        "description": "A thanksgiving rule after receiving the Holy Mysteries.",
+        "ruleLength": "standard",
+        "plannerMode": "balanced",
+        "seasonMode": "ordinary",
+        "communionMode": "thanksgiving"
+      },
+      "lenten-rule": {
+        "label": "Lenten Rule",
+        "description": "A penitential rule shaped by Great Lent.",
+        "ruleLength": "standard",
+        "plannerMode": "penitential",
+        "seasonMode": "great-lent",
+        "communionMode": "none"
+      },
+      "theotokos-intercession": {
+        "label": "Theotokos & Intercession",
+        "description": "A rule that leans toward the Mother of God and prayer for others.",
+        "ruleLength": "standard",
+        "plannerMode": "theotokos",
+        "seasonMode": "ordinary",
+        "communionMode": "none"
       }
     }
   }

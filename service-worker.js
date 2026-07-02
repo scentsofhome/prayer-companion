@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orthodox-prayer-book-v21-dynamic-planner';
+const CACHE_NAME = 'orthodox-prayer-book-v22-rule-presets';
 const APP_SHELL = [
   './',
   './index.html',
