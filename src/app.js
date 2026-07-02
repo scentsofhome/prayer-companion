@@ -337,7 +337,6 @@ function renderLibrary() {
   return `<div class="view"><p class="micro-label">Library</p><h1 class="page-title">Open a book</h1><p class="subtitle">The prayers are organized like shelves. Choose a section, then open a prayer.</p><div class="shelf-grid">${shelves}</div><div class="quiet-card" style="margin-top:18px"><p class="micro-label">Favorites</p><h3>${favorites.size ? `${favorites.size} saved prayers` : 'No favorites yet'}</h3><p>${favorites.size ? 'Open Search or a shelf and star prayers to keep them close.' : 'Tap the star on any prayer to save it here.'}</p><div class="list-panel">${renderFavoriteRows()}</div></div></div>`;
 }
 function categoryDescription(cat) {
-  if (/Jordanville/.test(cat)) return 'Major sections, canons, akathists, and communion prayers from the Jordanville prayer book text.';
   if (/Rule/.test(cat)) return 'Opening prayers, Creed, closing prayers, and core rule texts.';
   if (/Times/.test(cat)) return 'Morning, evening, and prayers for the hours of the day.';
   if (/Intercession/.test(cat)) return 'Short and longer prayers of intercession.';

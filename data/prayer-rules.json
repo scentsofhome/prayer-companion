@@ -1,5 +1,5 @@
 {
-  "version": "14.0.0-jordanville",
+  "version": "15.0.0-jordanville-clean",
   "ruleLengths": {
     "short": {
       "label": "Short",
@@ -28,7 +28,11 @@
         "a-prayer-of-saint-john-of-damascus",
         "another-prayer-of-saint-john-of-damascus",
         "a-prayer-of-saint-john-chrysostom-before-holy-communion",
-        "jordanville-order-of-preparation-for-holy-communion"
+        "jpb-psalms-before-holy-communion",
+        "jpb-canon-before-holy-communion",
+        "jpb-prayer-of-saint-basil-before-communion",
+        "jpb-prayer-of-saint-john-chrysostom-before-communion",
+        "jpb-i-believe-o-lord-and-i-confess"
       ]
     },
     "thanksgiving": {
@@ -39,7 +43,9 @@
         "a-prayer-of-saint-simeon-metaphrastes",
         "another-prayer",
         "a-prayer-to-the-theotokos",
-        "jordanville-prayers-after-holy-communion"
+        "jpb-prayer-of-thanksgiving-after-holy-communion",
+        "jpb-prayer-of-saint-basil-after-holy-communion",
+        "jpb-prayer-to-the-theotokos-after-holy-communion"
       ]
     }
   },
@@ -79,8 +85,9 @@
         "a-prayer-for-any-hour-of-the-day",
         "a-longer-prayer-of-intercession",
         "a-prayer-of-saint-philaret-metropolitan-of-moscow-asking-god-to-meet-our-needs",
-        "jordanville-morning-prayers",
-        "jordanville-selections-from-matins"
+        "jpb-morning-prayer-of-saint-basil-to-the-holy-trinity",
+        "jpb-morning-prayer-of-saint-macarius-i",
+        "jpb-morning-intercessions-for-the-living"
       ]
     },
     "Evening": {
@@ -100,8 +107,9 @@
         "a-longer-prayer-of-intercession",
         "just-before-going-to-sleep",
         "a-prayer-in-time-of-need-or-trouble",
-        "jordanville-prayers-before-sleep",
-        "jordanville-selections-from-vespers"
+        "jpb-before-sleep-prayer-of-saint-macarius-i",
+        "jpb-before-sleep-prayer-of-saint-john-chrysostom-vii",
+        "jpb-daily-confession-of-sins"
       ]
     }
   },
@@ -161,7 +169,7 @@
       "daily": [
         "a-prayer-to-the-guardian-angel",
         "another-prayer-to-the-guardian-angel",
-        "jordanville-canon-to-the-guardian-angel"
+        "jpb-canon-to-the-guardian-angel"
       ]
     },
     "Tuesday": {
@@ -184,7 +192,7 @@
       "daily": [
         "a-prayer-of-repentance",
         "a-prayer-for-the-acceptance-of-gods-will",
-        "jordanville-canon-of-repentance"
+        "jpb-canon-of-repentance"
       ]
     },
     "Thursday": {
@@ -207,7 +215,7 @@
       "daily": [
         "the-lenten-prayer-of-saint-ephrem",
         "a-prayer-of-repentance",
-        "jordanville-canon-of-repentance"
+        "jpb-canon-of-repentance"
       ]
     },
     "Saturday": {
@@ -230,7 +238,7 @@
       "daily": [
         "the-paschal-troparion",
         "a-prayer-of-thanksgiving-after-holy-communion",
-        "jordanville-troparia-kontakia-and-seasonal-hymns"
+        "jpb-sunday-resurrectional-troparia-and-kontakia"
       ]
     }
   },
@@ -243,8 +251,10 @@
     "the-lenten-prayer-of-saint-ephrem",
     "the-prayer-of-saint-ioannikios",
     "the-prayer-of-saint-macarius-the-egyptian",
-    "jordanville-prayers-during-the-day",
-    "jordanville-canon-of-repentance",
-    "jordanville-supplicatory-canon-to-the-theotokos"
+    "jpb-prayer-of-the-publican",
+    "jpb-before-the-beginning-of-any-work",
+    "jpb-before-lessons",
+    "jpb-after-meals",
+    "jpb-prayer-into-thy-hands"
   ]
 }
