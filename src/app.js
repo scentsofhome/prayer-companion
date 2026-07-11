@@ -1,4 +1,4 @@
-const VERSION = 'v18-mobile-cleanup';
+const VERSION = 'v18.1-mobile-search';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -443,7 +443,7 @@ function renderHome() {
   return `<div class="view home-v17 home-v18">
     <section class="home-main-stage" aria-label="Prayer rule">
       <header class="home-topbar home-floating-topbar">
-        <div class="app-wordmark"><span class="wordmark-mark" aria-hidden="true"></span><span>Prayer Rule</span></div>
+        <div class="app-wordmark"><span>Prayer Rule</span></div>
         <button class="home-date-pill ${isToday ? 'is-today' : ''}" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' • Today'}</button>
       </header>
 
@@ -686,7 +686,17 @@ function toggleFav(id) { favorites.has(id) ? favorites.delete(id) : favorites.ad
 
 screen.addEventListener('input', (e) => {
   const search = e.target.closest('#search-field');
-  if (search) { searchQuery = search.value; render('search'); return; }
+  if (search) {
+    const cursor = search.selectionStart ?? search.value.length;
+    searchQuery = search.value;
+    render('search');
+    const replacement = $('search-field');
+    if (replacement) {
+      replacement.focus({ preventScroll: true });
+      replacement.setSelectionRange(cursor, cursor);
+    }
+    return;
+  }
   const rangeInput = e.target.closest('[data-range]');
   if (rangeInput) {
     const key = rangeInput.dataset.range; const val = Number(rangeInput.value); const label = $(`range-${key}`); if (label) label.textContent = val;
