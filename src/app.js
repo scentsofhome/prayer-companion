@@ -1,4 +1,4 @@
-const VERSION = 'v18.1-mobile-search';
+const VERSION = 'v19-smart-prayer';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -6,7 +6,10 @@ function storageBundle(version) {
     appearance: `prayerRule.${version}.appearance`,
     personal: `prayerRule.${version}.personal`,
     reader: `prayerRule.${version}.reader`,
-    history: `prayerRule.${version}.history`
+    history: `prayerRule.${version}.history`,
+    recent: `prayerRule.${version}.recent`,
+    positions: `prayerRule.${version}.positions`,
+    communion: `prayerRule.${version}.communion`
   };
 }
 const STORAGE = storageBundle('v17serene');
@@ -41,6 +44,21 @@ const personalLabels = {
   traveling: 'Traveling',
   family: 'Family'
 };
+const searchIntents = {
+  anxiety: ['anxiety','anxious','worried','worry','afraid','fear','peace','trust','trouble'],
+  exam: ['exam','test','school','study','lesson','wisdom','learning'],
+  grief: ['grief','grieving','died','death','funeral','departed','repose','mourning'],
+  illness: ['ill','illness','sick','hospital','healing','health'],
+  confession: ['confession','confess','sin','sins','repentance','forgiveness','mercy'],
+  sleep: ['sleep','bed','night','insomnia','evening','protection'],
+  travel: ['travel','trip','journey','driving','flight','travelling'],
+  work: ['work','job','career','task','beginning','labour'],
+  family: ['family','parent','parents','child','children','marriage'],
+  communion: ['communion','eucharist','preparation','thanksgiving'],
+  temptation: ['temptation','addiction','passion','chastity','purity','deliverance'],
+  guidance: ['guidance','decision','unknown','will','wisdom','discernment']
+};
+const searchStopWords = new Set(['a','an','and','are','for','i','in','is','me','my','of','on','please','prayer','the','to','with']);
 
 const $ = (id) => document.getElementById(id);
 const screen = $('screen');
@@ -75,6 +93,13 @@ let favorites = new Set(storedJSON('favorites', []) || []);
 let personal = Object.assign({living:[], sick:[], departed:[], traveling:[], family:[]}, storedJSON('personal', {}) || {});
 let appearance = Object.assign({theme: 'dark', clarity: 17, frost: 22, reflection: 36, scale: 1, leading: 1.72, width: 720}, storedJSON('appearance', {}) || {});
 let prayerHistory = storedJSON('history', {}) || {};
+let recentPrayerIds = storedJSON('recent', []) || [];
+let readingPositions = storedJSON('positions', {}) || {};
+let ruleDuration = Number(state.ruleDuration) || (ruleLength === 'short' ? 5 : ruleLength === 'extended' ? 40 : 20);
+let activeCommunionMode = 'preparation';
+let previousScrollTop = 0;
+let wakeLock = null;
+let positionTimer = null;
 
 function safeJSON(raw, fallback = null) { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function storedJSON(kind, fallback = null) {
@@ -102,14 +127,18 @@ function weekIndex(date = new Date()) { return String((Math.floor(dayOfYear(date
 function uniqueIds(ids) { return [...new Set((ids || []).filter(Boolean))]; }
 function prayer(id) { return byId.get(id); }
 function showToast(message) { toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove('show'), 1500); }
-function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, seasonMode, communionMode, plannerMode, activePreset })); }
+function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, ruleDuration, seasonMode, communionMode, plannerMode, activePreset })); }
 function saveFavorites() { localStorage.setItem(STORAGE.favorites, JSON.stringify([...favorites])); }
 function savePersonal() { localStorage.setItem(STORAGE.personal, JSON.stringify(personal)); }
 function saveAppearance() { localStorage.setItem(STORAGE.appearance, JSON.stringify(appearance)); }
 function saveReaderProgress() {
+  if (reader?.kind === 'communion') {
+    localStorage.setItem(STORAGE.communion, JSON.stringify({ mode:reader.mode, variant:reader.variant, total:reader.steps.length, index:reader.index, savedAt:Date.now() }));
+    return;
+  }
   if (reader?.kind !== 'rule') return;
   if (reader.index <= 0) { clearSavedReader(); return; }
-  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, savedAt: Date.now() }));
+  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, duration:ruleDuration, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, savedAt: Date.now() }));
 }
 function getSavedReader() { return safeJSON(localStorage.getItem(STORAGE.reader), safeJSON(localStorage.getItem(LEGACY_STORAGE.reader), safeJSON(localStorage.getItem(OLDER_STORAGE.reader), safeJSON(localStorage.getItem(OLDEST_STORAGE.reader), null)))); }
 function clearSavedReader() { [STORAGE.reader, LEGACY_STORAGE.reader, OLDER_STORAGE.reader, OLDEST_STORAGE.reader].forEach(key => localStorage.removeItem(key)); }
@@ -118,7 +147,7 @@ function savedReaderForCurrentRule(steps = currentSteps()) {
   if (!saved) return null;
   const index = Number(saved.index);
   const savedAt = Number(saved.savedAt || 0);
-  const matchesRule = saved.day === selectedDay && saved.office === selectedOffice && saved.length === ruleLength && saved.season === seasonMode && saved.communion === communionMode && (saved.plannerMode || 'balanced') === plannerMode;
+  const matchesRule = saved.day === selectedDay && saved.office === selectedOffice && saved.length === ruleLength && Number(saved.duration || ruleDuration) === ruleDuration && saved.season === seasonMode && saved.communion === communionMode && (saved.plannerMode || 'balanced') === plannerMode;
   const freshEnough = savedAt && (Date.now() - savedAt) < 1000 * 60 * 60 * 24 * 21;
   if (!matchesRule || !freshEnough || !Number.isFinite(index) || index <= 0 || index >= steps.length) return null;
   return { ...saved, index };
@@ -213,8 +242,15 @@ function targetContexts() {
   return normalizedList([selectedOffice, seasonMode, selectedDay, ruleLength]);
 }
 function plannerBudget() {
-  const fallback = ruleLength === 'extended' ? { min: 32, target: 48, max: 70 } : { min: 14, target: 22, max: 30 };
-  return plannerConfig().budgets?.[ruleLength] || fallback;
+  const target = clamp(Number(ruleDuration) || 20, 5, 60);
+  return { min: Math.max(3, Math.round(target * .72)), target, max: Math.round(target * 1.32) };
+}
+function setRuleDuration(value) {
+  ruleDuration = clamp(Number(value) || 20, 5, 60);
+  ruleLength = ruleDuration <= 7 ? 'short' : ruleDuration >= 32 ? 'extended' : 'standard';
+  setCustomPreset();
+  clearSavedReader();
+  saveState();
 }
 function isCommunionPrayer(p) { return /holy communion/i.test(p?.category || '') || arrayValue(p?.contexts).some(c => /communion/i.test(c)); }
 function isRuleFramePrayer(p) { return /Rule of Prayer/i.test(p?.category || '') && arrayValue(p?.contexts).some(c => /opening|closing/i.test(c)); }
@@ -379,6 +415,41 @@ function hasPersonalNames() { return Object.values(personal).some(list => list &
 function ruleMinutes(steps) { return Math.max(3, Math.round(steps.reduce((sum, s) => sum + (s.type === 'prayer' ? estimatedMinutesForPrayer(prayer(s.id)) : .5), 0))); }
 function prayerOfDay() { const arr = allPrayers.filter(p => !/holy communion/i.test(p.category)); return arr[dayOfYear() % arr.length]; }
 function randomPrayer() { const arr = allPrayers; return arr[Math.floor(Math.random() * arr.length)]; }
+function rememberPrayer(id) {
+  if (!id || !byId.has(id)) return;
+  recentPrayerIds = [id, ...recentPrayerIds.filter(item => item !== id)].slice(0, 12);
+  localStorage.setItem(STORAGE.recent, JSON.stringify(recentPrayerIds));
+}
+function recentPrayers(limit = 6) { return recentPrayerIds.map(id => prayer(id)).filter(Boolean).slice(0, limit); }
+function expandedSearchTerms(query) {
+  const raw = norm(query).split(/[^a-z0-9]+/).filter(term => term && !searchStopWords.has(term));
+  const expanded = new Set(raw);
+  for (const [intent, words] of Object.entries(searchIntents)) {
+    if (raw.some(term => term === intent || words.includes(term))) words.forEach(word => expanded.add(norm(word)));
+  }
+  return [...expanded];
+}
+function searchPrayers(query) {
+  const phrase = norm(query).trim();
+  const terms = expandedSearchTerms(query);
+  if (!phrase || !terms.length) return [];
+  return allPrayers.map(p => {
+    const title = norm(p.title);
+    const category = norm(p.category);
+    const metadata = norm([...(p.tags||[]), ...(p.themes||[]), ...(p.contexts||[])].join(' '));
+    const body = norm((p.text||[]).join(' '));
+    let score = title.includes(phrase) ? 140 : 0;
+    for (const term of terms) {
+      if (title.includes(term)) score += 34;
+      if (metadata.includes(term)) score += 22;
+      if (category.includes(term)) score += 14;
+      if (body.includes(term)) score += 3;
+    }
+    if (favorites.has(p.id)) score += 4;
+    if (recentPrayerIds.includes(p.id)) score += 2;
+    return { p, score };
+  }).filter(item => item.score > 0).sort((a,b) => b.score - a.score || a.p.title.localeCompare(b.p.title)).map(item => item.p);
+}
 function setTodayDefaults() {
   const now = new Date();
   selectedDay = dayNames[now.getDay()];
@@ -422,6 +493,7 @@ function render(view = currentView) {
   else if (view === 'search') html = renderSearch();
   else if (view === 'settings') html = renderSettings();
   else if (view === 'prayer') html = renderPrayerDetail(activePrayerId);
+  else if (view === 'communion') html = renderCommunion(activeCommunionMode);
   screen.innerHTML = html;
   if (view === 'search') setTimeout(() => { if (shouldAutofocusSearch()) $('search-field')?.focus(); }, 80);
   screen.scrollTop = 0;
@@ -464,8 +536,8 @@ function renderHome() {
             <button class="primary-button home-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}>${hasResume ? 'Resume Prayer' : 'Pray'}</button>
           </div>
           <div class="home-communion-actions" aria-label="Holy Communion prayers">
-            <button type="button" data-start-communion="preparation"><span>Before Communion</span><em>Preparation prayers</em></button>
-            <button type="button" data-start-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving prayers</em></button>
+            <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Choose preparation</em></button>
+            <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Choose thanksgiving</em></button>
           </div>
         </section>
       </div>
@@ -488,6 +560,7 @@ function renderHome() {
         <span><em>Prayer of the Day</em><strong>${esc(pday.title)}</strong><small>${esc(pday.category)}</small></span>
         <b>Read</b>
       </button>
+      ${recentPrayers(3).length ? `<section class="recent-prayers"><p class="micro-label">Recently opened</p><div class="list-panel">${recentPrayers(3).map(prayerRow).join('')}</div></section>` : ''}
     </section>
   </div>`;
 }
@@ -543,22 +616,50 @@ function prayerRow(p) {
 }
 function renderSearch() {
   const q = searchQuery.trim();
-  const normalized = norm(q);
-  const results = q ? allPrayers.filter(p => norm([p.title, p.category, (p.tags||[]).join(' '), (p.text||[]).join(' ')].join(' ')).includes(normalized)) : [];
-  const suggestions = ['Jesus Prayer', 'Study', 'Travel', 'Repentance', 'Thanksgiving', 'Communion'];
+  const results = searchPrayers(q);
+  const suggestions = ['I’m anxious', 'Exam', 'Someone died', 'Confession', 'Illness', 'Before Communion'];
   const quick = (rulesData.quickPrayers || []).map(id => prayer(id)).filter(Boolean).map(p => `<button class="quick-pill" type="button" data-open-prayer="${esc(p.id)}">${esc(shortPrayerLabel(p.title))}</button>`).join('');
+  const recent = recentPrayers(5);
   return `<div class="view search-hero"><section class="spotlight-panel" aria-label="Prayer search">
-    <p class="micro-label">Spotlight</p>
-    <h1 class="page-title">Find a prayer</h1>
-    <label class="search-box glass"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg><input id="search-field" value="${esc(searchQuery)}" placeholder="Search by need, saint, phrase…" autocomplete="off" inputmode="search" enterkeyhint="search" autocapitalize="none"></label>
-    ${q ? `<p class="subtitle search-subtitle">${results.length} result${results.length === 1 ? '' : 's'} for “${esc(q)}”</p><div class="list-panel spotlight-results">${results.map(prayerRow).join('') || `<div class="empty">No prayer found.</div>`}</div>` : `<div class="search-suggestions">${suggestions.map(s => `<button class="suggestion-chip" type="button" data-search-suggestion="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="quick-list spotlight-quick">${quick}</div>`}
+    <p class="micro-label">Search</p>
+    <h1 class="page-title">What do you need?</h1>
+    <label class="search-box glass"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg><input id="search-field" value="${esc(searchQuery)}" placeholder="Try “I’m anxious” or “exam”…" autocomplete="off" inputmode="search" enterkeyhint="search" autocapitalize="sentences"></label>
+    ${q ? `<p class="subtitle search-subtitle">${results.length} relevant prayer${results.length === 1 ? '' : 's'}</p><div class="list-panel spotlight-results">${results.slice(0,40).map(prayerRow).join('') || `<div class="empty">No close match. Try a simpler need such as peace, study, illness, travel, or repentance.</div>`}</div>` : `<div class="search-suggestions">${suggestions.map(item => `<button class="suggestion-chip" type="button" data-search-suggestion="${esc(item)}">${esc(item)}</button>`).join('')}</div>${recent.length ? `<div class="search-recent"><p class="micro-label">Recently opened</p><div class="list-panel">${recent.map(prayerRow).join('')}</div></div>` : `<div class="quick-list spotlight-quick">${quick}</div>`}`}
   </section></div>`;
 }
 function shortPrayerLabel(title) { return title.replace(/^A Prayer (Before|After) /,'$1 ').replace(/^The /,'').replace('The Jesus Prayer','Jesus Prayer').replace('The Lenten Prayer of Saint Ephrem','St. Ephrem'); }
+function prayerTextHTML(p) {
+  return (p?.text || []).map(text => {
+    const clean = String(text).trim();
+    const heading = clean.match(/^((?:ODE\s+[IVX]+|Kontakion\s+\d+|Ekos\s+\d+|Troparion(?:,?\s+[^:]{1,40})?|Theotokion|Refrain|Prayer[^:]{0,70}):?)\s*(.*)$/i);
+    if (heading) return `<p class="liturgical-section"><strong>${esc(heading[1])}</strong>${heading[2] ? ` <span>${esc(heading[2])}</span>` : ''}</p>`;
+    const rubric = /^(?:\[|Then\b|This kontakion\b|Prostration\b|Note:)/i.test(clean);
+    return `<p${rubric ? ' class="reader-rubric"' : ''}>${esc(clean)}</p>`;
+  }).join('');
+}
 function renderPrayerDetail(id) {
   const p = prayer(id) || allPrayers[0];
   const fav = favorites.has(p.id);
-  return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">Read</button></div><div class="reader-text" style="margin-top:32px;max-width:var(--reader-width)">${(p.text||[]).map(t => `<p>${esc(t)}</p>`).join('')}</div></div>`;
+  const position = Number(readingPositions[p.id] || 0);
+  const action = position > .04 ? 'Resume' : 'Read';
+  const provenance = p.source === 'Jordanville Prayer Book' ? 'OCR-cleaned import; source comparison is still recommended for critical use.' : 'Curated app library text.';
+  return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span></div><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action}</button></div><p class="prayer-provenance">${esc(provenance)}</p><div class="reader-text prayer-detail-text">${prayerTextHTML(p)}</div></div>`;
+}
+function communionVariantIds(mode, variant) {
+  const ids = (rulesData?.communionModes?.[mode]?.ids || []).filter(id => prayer(id));
+  if (mode === 'preparation' && variant === 'canon') return ids.filter(id => /canon|psalm/i.test(prayer(id)?.title || ''));
+  if (mode === 'preparation' && variant === 'prayers') return ids.filter(id => !/canon|psalm/i.test(prayer(id)?.title || ''));
+  if (mode === 'thanksgiving' && variant === 'short') return ids.slice(0, 3);
+  return ids;
+}
+function renderCommunion(mode) {
+  const before = mode === 'preparation';
+  const title = before ? 'Before Communion' : 'After Communion';
+  const options = before
+    ? [['full','Full preparation','Psalms, canon, and preparation prayers'],['canon','Canon and Psalms','The longer appointed preparation'],['prayers','Prayers only','Preparation prayers without the canon']]
+    : [['full','Full thanksgiving','The complete thanksgiving collection'],['short','Short thanksgiving','A shorter three-prayer selection']];
+  const all = communionVariantIds(mode, 'full').map(id => prayer(id)).filter(Boolean);
+  return `<div class="view communion-view"><button class="secondary-button" type="button" data-nav="home">← Home</button><div class="communion-heading"><p class="micro-label">Holy Communion</p><h1 class="page-title">${title}</h1><p class="subtitle">Choose the form that fits your prayer and available time. Progress is remembered on this device.</p></div><div class="communion-option-grid">${options.map(([variant,label,description]) => { const ids=communionVariantIds(mode,variant); return `<button class="communion-option" type="button" data-start-communion="${mode}" data-communion-variant="${variant}"><span>${label}</span><em>${description}</em><small>${ids.length} prayers • about ${Math.max(1,Math.round(idsMinutes(ids)))} min</small></button>`; }).join('')}</div><details class="communion-list"><summary>See included prayers</summary><div class="list-panel">${all.map(prayerRow).join('')}</div></details></div>`;
 }
 function renderSettings() {
   const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
@@ -570,8 +671,8 @@ function renderSettings() {
       <section class="quiet-card settings-section">
         <div class="settings-section-head"><div><p class="micro-label">Daily rule</p><h3>Prayer selection</h3></div></div>
         <div class="settings-row">
-          <label for="setting-length"><strong>Length</strong><span>How long the regular morning or evening rule should be.</span></label>
-          <select id="setting-length" class="form-control" data-setting="ruleLength"><option value="short">Short</option><option value="standard">Standard</option><option value="extended">Extended</option></select>
+          <label for="setting-length"><strong>Duration</strong><span>The planner keeps the opening, daily focus, intercessions, and closing coherent while fitting this target.</span></label>
+          <select id="setting-length" class="form-control" data-setting="ruleDuration"><option value="5">About 5 minutes</option><option value="10">About 10 minutes</option><option value="20">About 20 minutes</option><option value="40">About 40 minutes</option></select>
         </div>
         <div class="settings-row">
           <label for="setting-style"><strong>Emphasis</strong><span>Which kinds of prayers appear more often.</span></label>
@@ -611,16 +712,32 @@ function openSheet() { quickSheet.classList.add('open'); quickSheet.setAttribute
 function closeSheet() { quickSheet.classList.remove('open'); quickSheet.setAttribute('aria-hidden', 'true'); }
 
 function startRule(index = 0) { const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)) }; openReader(); }
-function startSinglePrayer(id) { reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0 }; openReader(); }
-function startCommunionRule(mode) {
-  const config = rulesData?.communionModes?.[mode];
-  const steps = (config?.ids || []).filter(id => prayer(id)).map(id => ({ type:'prayer', id, section: config.label }));
-  if (!steps.length) { showToast('Communion prayers are unavailable'); return; }
-  reader = { kind:'communion', mode, steps, index:0 };
+function startSinglePrayer(id) {
+  rememberPrayer(id);
+  reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0, position: Number(readingPositions[id] || 0) };
   openReader();
 }
-function openReader() { document.body.classList.add('reader-mode'); renderReader(); resetIdle(); }
-function closeReader() { document.body.classList.remove('reader-mode', 'ambient-mode'); clearTimeout(idleTimer); reader = null; render(currentView === 'prayer' ? 'prayer' : 'home'); }
+function communionProgress(mode, variant, steps) {
+  const saved = safeJSON(localStorage.getItem(STORAGE.communion), null);
+  if (!saved || saved.mode !== mode || saved.variant !== variant || saved.total !== steps.length) return 0;
+  return clamp(Number(saved.index) || 0, 0, Math.max(0, steps.length - 1));
+}
+function startCommunionRule(mode, variant = 'full') {
+  const config = rulesData?.communionModes?.[mode];
+  const steps = communionVariantIds(mode, variant).map(id => ({ type:'prayer', id, section: config.label }));
+  if (!steps.length) { showToast('Communion prayers are unavailable'); return; }
+  reader = { kind:'communion', mode, variant, steps, index:communionProgress(mode, variant, steps) };
+  openReader();
+}
+async function requestWakeLock() {
+  try { if ('wakeLock' in navigator && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
+}
+function releaseWakeLock() {
+  try { wakeLock?.release(); } catch {}
+  wakeLock = null;
+}
+function openReader() { document.body.classList.add('reader-mode'); renderReader(); requestWakeLock(); resetIdle(); }
+function closeReader() { saveCurrentReadingPosition(); document.body.classList.remove('reader-mode', 'ambient-mode'); clearTimeout(idleTimer); releaseWakeLock(); reader = null; render(currentView === 'prayer' ? 'prayer' : (currentView === 'communion' ? 'communion' : 'home')); }
 function renderReader() {
   if (!reader) return;
   const steps = reader.steps;
@@ -633,16 +750,41 @@ function renderReader() {
     <div class="reader-foot"><button class="reader-control" type="button" data-reader-prev ${reader.index === 0 ? 'disabled' : ''}>Previous</button><div class="reader-count">${reader.index+1} / ${steps.length}</div><button class="reader-control ${isLast ? 'reader-done' : ''}" type="button" data-reader-next>${isLast ? 'Finish' : 'Next'}</button></div>
   </div>`;
   saveReaderProgress();
+  setupReaderStage();
 }
 function renderReaderStep(step) {
   if (step.type === 'prayer') {
     const p = prayer(step.id);
-    return `<article class="prayer-page"><div class="reader-kicker">${esc(step.section || p?.category || 'Prayer')}</div><h1 class="reader-title">${esc(p?.title || 'Prayer')}</h1><div class="reader-text">${(p?.text || []).map(t => `<p>${esc(t)}</p>`).join('')}</div></article>`;
+    return `<article class="prayer-page"><div class="reader-kicker">${esc(step.section || p?.category || 'Prayer')}</div><h1 class="reader-title">${esc(p?.title || 'Prayer')}</h1><div class="reader-text">${prayerTextHTML(p)}</div><footer class="reader-source">${esc(p?.source || 'Prayer Library')}</footer></article>`;
   }
   if (step.type === 'psalms') {
     return `<article class="prayer-page"><div class="reader-kicker">Psalter</div><h1 class="reader-title">Appointed Psalms</h1><div class="reader-text"><p>${esc(step.psalms.join(' • '))}</p><p>Read the appointed psalms from an Orthodox Psalter or your parish prayer book.</p></div></article>`;
   }
   return `<article class="prayer-page"><div class="reader-kicker">Intercessions</div><h1 class="reader-title">Remember, O Lord</h1><div class="reader-text">${Object.entries(personalLabels).map(([key,label]) => personal[key]?.length ? `<p><strong>${esc(label)}:</strong> ${esc(personal[key].join(', '))}</p>` : '').join('')}<p>Lord, have mercy.</p></div></article>`;
+}
+function saveCurrentReadingPosition() {
+  if (reader?.kind !== 'single') return;
+  const stage = $('reader-stage');
+  const id = reader.steps?.[0]?.id;
+  if (!stage || !id) return;
+  const max = Math.max(1, stage.scrollHeight - stage.clientHeight);
+  const ratio = clamp(stage.scrollTop / max, 0, 1);
+  readingPositions[id] = ratio > .98 ? 0 : ratio;
+  localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions));
+}
+function setupReaderStage() {
+  const stage = $('reader-stage');
+  if (!stage) return;
+  requestAnimationFrame(() => {
+    if (reader?.kind === 'single' && reader.position) {
+      const max = Math.max(0, stage.scrollHeight - stage.clientHeight);
+      stage.scrollTop = max * reader.position;
+    }
+    stage.addEventListener('scroll', () => {
+      clearTimeout(positionTimer);
+      positionTimer = setTimeout(saveCurrentReadingPosition, 180);
+    }, { passive:true });
+  });
 }
 function softTap() { try { navigator.vibrate?.(8); } catch {} }
 function nextReader() {
@@ -666,8 +808,18 @@ function completeRule() {
     clearSavedReader();
     reader = null;
     document.body.classList.remove('reader-mode', 'ambient-mode');
+    releaseWakeLock();
     render('home');
-  } else closeReader();
+  } else if (reader?.kind === 'communion') {
+    localStorage.removeItem(STORAGE.communion);
+    releaseWakeLock();
+    closeReader();
+  } else {
+    const id = reader?.steps?.[0]?.id;
+    if (id) { readingPositions[id] = 0; localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions)); }
+    releaseWakeLock();
+    closeReader();
+  }
 }
 function resetIdle() {
   document.body.classList.remove('ambient-mode');
@@ -716,6 +868,7 @@ screen.addEventListener('change', (e) => {
   const key = setting.dataset.setting;
   setCustomPreset();
   if (key === 'ruleLength') ruleLength = setting.value;
+  if (key === 'ruleDuration') setRuleDuration(setting.value);
   if (key === 'selectedDay') selectedDay = setting.value;
   if (key === 'seasonMode') seasonMode = setting.value;
   if (key === 'communionMode') communionMode = setting.value;
@@ -731,8 +884,8 @@ document.addEventListener('click', async (e) => {
   const cat = e.target.closest('[data-category]');
   if (cat) { activeCategory = cat.dataset.category; render('category'); return; }
   const openPrayer = e.target.closest('[data-open-prayer]');
-  if (openPrayer) { closeSheet(); previousView = currentView; activePrayerId = openPrayer.dataset.openPrayer; render('prayer'); return; }
-  if (e.target.closest('[data-back]')) { render(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); return; }
+  if (openPrayer) { closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); render('prayer'); return; }
+  if (e.target.closest('[data-back]')) { render(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); requestAnimationFrame(() => { screen.scrollTop = previousScrollTop; }); return; }
   if (e.target.closest('[data-start-rule]')) { startRule(0); return; }
   if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0); return; }
   if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; activePrayerId = p.id; render('prayer'); return; }
@@ -741,8 +894,10 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-use-today]')) { setTodayDefaults(); clearSavedReader(); render('home'); return; }
   const day = e.target.closest('[data-day-set]');
   if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); clearSavedReader(); saveState(); render('home'); return; }
+  const communionPage = e.target.closest('[data-open-communion]');
+  if (communionPage) { activeCommunionMode = communionPage.dataset.openCommunion; render('communion'); return; }
   const communion = e.target.closest('[data-start-communion]');
-  if (communion) { startCommunionRule(communion.dataset.startCommunion); return; }
+  if (communion) { startCommunionRule(communion.dataset.startCommunion, communion.dataset.communionVariant || 'full'); return; }
   const preset = e.target.closest('[data-rule-preset]');
   if (preset) { applyPreset(preset.dataset.rulePreset); render(currentView === 'rule' ? 'rule' : 'settings'); return; }
   if (e.target.closest('[data-scroll-explore]')) { screen.querySelector('#home-explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -769,6 +924,9 @@ document.addEventListener('click', async (e) => {
 });
 
 ['mousemove','touchstart','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && reader) requestWakeLock();
+});
 document.addEventListener('keydown', (e) => {
   if (!reader && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchQuery = ''; render('search'); }
   if (!reader) return;
@@ -786,6 +944,7 @@ document.addEventListener('touchend', (e) => {
 
 function syncSettingsUI() {
   const ruleSelect = screen.querySelector('[data-setting="ruleLength"]'); if (ruleSelect) ruleSelect.value = ruleLength;
+  const durationSelect = screen.querySelector('[data-setting="ruleDuration"]'); if (durationSelect) durationSelect.value = String(ruleDuration);
   const seasonSelect = screen.querySelector('[data-setting="seasonMode"]'); if (seasonSelect) seasonSelect.value = seasonMode;
   const plannerSelect = screen.querySelector('[data-setting="plannerMode"]'); if (plannerSelect) plannerSelect.value = plannerMode;
   screen.querySelectorAll('[data-theme-set]').forEach(b => b.classList.toggle('active', b.dataset.themeSet === appearance.theme));
