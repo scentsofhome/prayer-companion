@@ -1327,3 +1327,67 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .recommendation-card { min-height:116px; padding:15px 13px; border-radius:24px; grid-template-columns:28px minmax(0,1fr); gap:9px; }
   .recommendation-open { display:none; }
 }
+
+
+/* v19.3 smooth release: calmer state changes and compact settings */
+button, input, select, summary { touch-action: manipulation; }
+button:disabled { transform:none !important; }
+#guide-results { animation: guideResultsIn .16s ease both; }
+@keyframes guideResultsIn { from { opacity:.45; transform:translateY(3px); } to { opacity:1; transform:none; } }
+.personal-settings { margin-top:16px; }
+.intention-groups {
+  display:grid;
+  gap:8px;
+  margin-top:18px;
+}
+.intention-group {
+  border:1px solid var(--hairline);
+  border-radius:22px;
+  background:rgba(255,255,255,.04);
+  overflow:hidden;
+}
+.intention-group summary {
+  min-height:58px;
+  padding:12px 15px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+  list-style:none;
+}
+.intention-group summary::-webkit-details-marker { display:none; }
+.intention-group summary::after {
+  content:"＋";
+  color:var(--gold-soft);
+  font-size:16px;
+  transition:transform .18s ease;
+}
+.intention-group[open] summary::after { transform:rotate(45deg); }
+.intention-group summary span { color:var(--text); font-weight:950; }
+.intention-group summary em {
+  margin-left:auto;
+  color:var(--muted);
+  font-size:11px;
+  font-style:normal;
+  font-weight:850;
+}
+.intention-group-body {
+  padding:0 14px 15px;
+  border-top:1px solid var(--hairline);
+}
+.intention-group-body .name-input-row { padding-top:14px; }
+.reader-stage { overscroll-behavior:contain; scroll-padding-bottom:120px; }
+.reader-text .liturgical-section strong { scroll-margin-top:80px; }
+.communion-view .bottom-dock,
+.prayer-guide .bottom-dock { transition:none; }
+.form-control, .reader-control, .primary-button, .secondary-button { min-height:48px; }
+@media (max-width:640px) {
+  .settings-section { border-radius:26px; }
+  .personal-settings { border-radius:26px; }
+  .intention-group { border-radius:19px; }
+  .intention-group summary { min-height:54px; }
+  .reader-stage { padding-bottom:calc(108px + env(safe-area-inset-bottom)); }
+  .reader-title { text-wrap:balance; }
+  .recommendation-copy strong { text-wrap:balance; }
+}
