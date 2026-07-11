@@ -1,11 +1,11 @@
-const CACHE_NAME = 'orthodox-prayer-book-v25-smart-prayer';
+const CACHE_NAME = 'orthodox-prayer-book-v26-fresh-assets';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css',
-  './src/app.js',
-  './src/extra-prayers.js',
+  './src/styles.css?v=19.1',
+  './src/app.js?v=19.1',
+  './src/extra-prayers.js?v=19.1',
   './data/prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',
@@ -47,7 +47,26 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
+    event.respondWith(fetch(request).then(response => {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+      }
+      return response;
+    }).catch(() => caches.match('./index.html')));
+    return;
+  }
+
+  const freshAsset = ['/src/app.js', '/src/styles.css', '/src/extra-prayers.js', '/data/prayers.json', '/data/prayer-rules.json']
+    .some(path => url.pathname.endsWith(path));
+  if (freshAsset) {
+    event.respondWith(fetch(request).then(response => {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(request)));
     return;
   }
 
