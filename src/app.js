@@ -1,4 +1,4 @@
-const VERSION = 'v19.2-prayer-guide';
+const VERSION = 'v19.2.1-prayer-guide';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -56,9 +56,10 @@ const searchIntents = {
   family: ['family','parent','parents','child','children','marriage'],
   communion: ['communion','eucharist','preparation','thanksgiving'],
   temptation: ['temptation','addiction','passion','chastity','purity','deliverance'],
-  guidance: ['guidance','decision','unknown','will','wisdom','discernment']
+  guidance: ['guidance','decision','unknown','will','wisdom','discernment'],
+  forgiveness: ['forgive','forgiveness','enemy','enemies','reconciliation','love','mercy']
 };
-const searchStopWords = new Set(['a','an','and','are','for','i','in','is','me','my','of','on','please','prayer','the','to','with']);
+const searchStopWords = new Set(['a','an','and','are','for','i','in','is','m','im','me','my','of','on','please','prayer','the','to','with']);
 
 const $ = (id) => document.getElementById(id);
 const screen = $('screen');
@@ -187,7 +188,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.2').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.2.1').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
