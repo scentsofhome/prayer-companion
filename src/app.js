@@ -1,4 +1,4 @@
-const VERSION = 'v19.2.2-prayer-guide';
+const VERSION = 'v19.2.3-prayer-guide';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -188,7 +188,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.2.2').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.2.3').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -461,7 +461,7 @@ function searchPrayers(query, withScores = false) {
     const directMatches = uniqueIds(matches.filter(term => originalTerms.includes(term)));
     const intentMatches = uniqueIds(matches.filter(term => !originalTerms.includes(term)));
     return { p, score, directMatches, intentMatches };
-  }).filter(item => item.score > 0).sort((a,b) => b.score - a.score || a.p.title.localeCompare(b.p.title));
+  }).filter(item => item.score >= 10).sort((a,b) => b.score - a.score || a.p.title.localeCompare(b.p.title));
   return withScores ? ranked : ranked.map(item => item.p);
 }
 function naturalList(items) {
