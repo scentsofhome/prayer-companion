@@ -1,4 +1,4 @@
-const VERSION = 'v19.3-smooth-release';
+const VERSION = 'v19.3.1-smooth-release';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -59,7 +59,7 @@ const searchIntents = {
   guidance: ['guidance','decision','unknown','will','wisdom','discernment'],
   forgiveness: ['forgive','forgiveness','enemy','enemies','reconciliation','love','mercy']
 };
-const searchStopWords = new Set(['a','an','and','are','for','i','in','is','m','im','me','my','of','on','please','prayer','the','to','with']);
+const searchStopWords = new Set(['a','an','and','are','for','i','in','is','m','im','me','my','need','someone','of','on','please','prayer','the','to','with']);
 
 const $ = (id) => document.getElementById(id);
 const screen = $('screen');
@@ -188,7 +188,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.3').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.3.1').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
