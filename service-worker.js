@@ -1,11 +1,11 @@
-const CACHE_NAME = 'orthodox-prayer-book-v26-fresh-assets';
+const CACHE_NAME = 'orthodox-prayer-book-v27-prayer-guide';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=19.1',
-  './src/app.js?v=19.1',
-  './src/extra-prayers.js?v=19.1',
+  './src/styles.css?v=19.2',
+  './src/app.js?v=19.2',
+  './src/extra-prayers.js?v=19.2',
   './data/prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',
