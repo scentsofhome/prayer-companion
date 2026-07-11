@@ -345,7 +345,9 @@ function buildDynamicBody(rules, day, office, cycle, seasonIds, opening, closing
   };
   const remaining = () => Math.max(0, bodyTarget - idsMinutes(body));
 
-  add([...office.main, ...office.standardExtras]);
+  const officeAnchors = ruleDuration <= 10 ? (office.main || []).slice(0,1) : (office.main || []);
+  const officeExtras = ruleDuration >= 18 ? (office.standardExtras || []) : ruleDuration >= 12 ? (office.standardExtras || []).slice(0,1) : [];
+  add([...officeAnchors, ...officeExtras]);
   add(pickPrayerIds(day.daily || [], sectionPlan.day || 1, exclude, themes, contexts, remaining(), { minRemaining: 2, ignoreBudget: ruleLength === 'extended' }));
   add(pickPrayerIds(cycle?.[selectedOffice.toLowerCase()] || [], sectionPlan.weekly || 1, exclude, themes, contexts, remaining(), { minRemaining: 2 }));
   add(pickPrayerIds(seasonIds, sectionPlan.season || 0, exclude, themes, contexts, remaining(), { minRemaining: 2 }));
@@ -581,7 +583,7 @@ function renderRule() {
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
       <div class="top-actions"><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
-    <div class="quiet-card"><div class="stat-row">${presetPill}<span class="stat-pill">${esc(ruleLength)} rule</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
+    <div class="quiet-card"><div class="stat-row">${presetPill}<span class="stat-pill">About ${ruleDuration} min target</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
     <div class="rule-path">${stepRows}</div>
   </div>`;
 }
@@ -737,7 +739,7 @@ function releaseWakeLock() {
   wakeLock = null;
 }
 function openReader() { document.body.classList.add('reader-mode'); renderReader(); requestWakeLock(); resetIdle(); }
-function closeReader() { saveCurrentReadingPosition(); document.body.classList.remove('reader-mode', 'ambient-mode'); clearTimeout(idleTimer); releaseWakeLock(); reader = null; render(currentView === 'prayer' ? 'prayer' : (currentView === 'communion' ? 'communion' : 'home')); }
+function closeReader(savePosition = true) { if (savePosition) saveCurrentReadingPosition(); document.body.classList.remove('reader-mode', 'ambient-mode'); clearTimeout(idleTimer); releaseWakeLock(); reader = null; render(currentView === 'prayer' ? 'prayer' : (currentView === 'communion' ? 'communion' : 'home')); }
 function renderReader() {
   if (!reader) return;
   const steps = reader.steps;
@@ -818,7 +820,7 @@ function completeRule() {
     const id = reader?.steps?.[0]?.id;
     if (id) { readingPositions[id] = 0; localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions)); }
     releaseWakeLock();
-    closeReader();
+    closeReader(false);
   }
 }
 function resetIdle() {
