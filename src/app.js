@@ -184,11 +184,11 @@ async function init() {
     render('home');
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('prayerRule.swReloaded')) return;
-        sessionStorage.setItem('prayerRule.swReloaded', '1');
+        if (sessionStorage.getItem('prayerRule.swReloaded.v19.3')) return;
+        sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.2.3').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.3').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -741,7 +741,11 @@ function renderSettings() {
 }
 function range(key,label,min,max,value){ return `<div class="range-row"><label><span>${label}</span><strong id="range-${key}">${value}</strong></label><input type="range" min="${min}" max="${max}" value="${value}" data-range="${key}"></div>`; }
 function renderPersonalSettings(){
-  return `<div class="quiet-card" style="margin-top:16px"><p class="micro-label">Personal Intercessions</p><h3>Names remembered in your rule</h3><p>Saved only on this device.</p><div class="form-grid">${Object.entries(personalLabels).map(([key,label]) => `<div class="form-card"><h3>${label}</h3><div class="name-input-row"><input class="form-control" placeholder="Add a name" data-name-input="${key}"><button class="icon-button" type="button" data-add-name="${key}">+</button></div><div class="name-chip-list">${(personal[key]||[]).map((name,idx) => `<span class="name-chip">${esc(name)}<button type="button" data-remove-name="${key}" data-name-index="${idx}">×</button></span>`).join('')}</div></div>`).join('')}</div></div>`;
+  return `<section class="quiet-card personal-settings"><p class="micro-label">Personal Intercessions</p><h3>Names remembered in your rule</h3><p>Saved only on this device. Open a group to add or remove names.</p><div class="intention-groups">${Object.entries(personalLabels).map(([key,label]) => { const names=personal[key]||[]; return `<details class="intention-group" ${names.length ? 'open' : ''}><summary><span>${label}</span><em>${names.length ? `${names.length} saved` : 'None saved'}</em></summary><div class="intention-group-body"><div class="name-input-row"><input class="form-control" placeholder="Add a name" aria-label="Add a name to ${esc(label)}" data-name-input="${key}"><button class="icon-button" type="button" data-add-name="${key}" aria-label="Add name">+</button></div><div class="name-chip-list">${names.map((name,idx) => `<span class="name-chip">${esc(name)}<button type="button" data-remove-name="${key}" data-name-index="${idx}" aria-label="Remove ${esc(name)}">×</button></span>`).join('')}</div></div></details>`; }).join('')}</div></section>`;
+}
+function refreshSettingsAt(scrollTop = screen.scrollTop) {
+  render('settings');
+  requestAnimationFrame(() => { screen.scrollTop = scrollTop; });
 }
 function renderGlossary(){ return `<div class="quiet-card" style="margin-top:16px"><p class="micro-label">Glossary</p><h3>Orthodox words</h3><div class="glossary-grid">${glossary.map(([term,def]) => `<div class="glossary-item"><strong>${esc(term)}</strong><span>${esc(def)}</span></div>`).join('')}</div></div>`; }
 
@@ -901,6 +905,14 @@ screen.addEventListener('input', (e) => {
   }
 });
 
+screen.addEventListener('keydown', (e) => {
+  const input = e.target.closest('[data-name-input]');
+  if (input && e.key === 'Enter') {
+    e.preventDefault();
+    screen.querySelector(`[data-add-name="${input.dataset.nameInput}"]`)?.click();
+  }
+});
+
 screen.addEventListener('change', (e) => {
   const setting = e.target.closest('[data-setting]');
   if (!setting) return;
@@ -953,13 +965,13 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-reader-next]')) { nextReader(); return; }
   if (e.target.closest('[data-finish-reader]')) { closeReader(); render('home'); return; }
   const theme = e.target.closest('[data-theme-set]');
-  if (theme) { appearance.theme = theme.dataset.themeSet; applyAppearance(); render('settings'); return; }
+  if (theme) { appearance.theme = theme.dataset.themeSet; applyAppearance(); screen.querySelectorAll('[data-theme-set]').forEach(button => button.classList.toggle('active', button.dataset.themeSet === appearance.theme)); return; }
   const office = e.target.closest('[data-office-set]');
   if (office) { selectedOffice = office.dataset.officeSet; setCustomPreset(); saveState(); render(currentView === 'settings' ? 'settings' : 'home'); return; }
   const addName = e.target.closest('[data-add-name]');
-  if (addName) { const key = addName.dataset.addName; const input = screen.querySelector(`[data-name-input="${key}"]`); const value = input?.value.trim(); if (value) { personal[key] = [...(personal[key] || []), value]; savePersonal(); render('settings'); } return; }
+  if (addName) { const key = addName.dataset.addName; const input = screen.querySelector(`[data-name-input="${key}"]`); const value = input?.value.trim(); if (value) { const scrollTop=screen.scrollTop; personal[key] = [...(personal[key] || []), value]; savePersonal(); refreshSettingsAt(scrollTop); } return; }
   const removeName = e.target.closest('[data-remove-name]');
-  if (removeName) { const key = removeName.dataset.removeName; const idx = Number(removeName.dataset.nameIndex); personal[key].splice(idx,1); savePersonal(); render('settings'); return; }
+  if (removeName) { const key = removeName.dataset.removeName; const idx = Number(removeName.dataset.nameIndex); personal[key].splice(idx,1); savePersonal(); refreshSettingsAt(screen.scrollTop); return; }
 });
 
 ['mousemove','touchstart','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
