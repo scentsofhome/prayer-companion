@@ -1141,3 +1141,158 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v19 smart prayer: semantic search, Communion flows, provenance, and structured reading */
+.recent-prayers,
+.search-recent {
+  margin-top: 18px;
+}
+.recent-prayers > .list-panel,
+.search-recent > .list-panel {
+  margin-top: 6px;
+}
+.recent-prayers .prayer-row,
+.search-recent .prayer-row {
+  padding-block: 12px;
+}
+.prayer-provenance {
+  max-width: 720px;
+  margin: 22px 0 0;
+  padding: 12px 14px;
+  border-left: 2px solid var(--gold);
+  color: var(--muted);
+  background: rgba(255,255,255,.045);
+  border-radius: 0 14px 14px 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.prayer-detail-text {
+  margin-top: 30px;
+  max-width: var(--reader-width);
+}
+.reader-text .liturgical-section {
+  margin-top: 1.55em;
+}
+.reader-text .liturgical-section:first-child {
+  margin-top: 0;
+}
+.liturgical-section strong {
+  display: block;
+  margin-bottom: .25em;
+  color: var(--gold-soft);
+  font-family: var(--font-ui);
+  font-size: .56em;
+  line-height: 1.3;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.liturgical-section span {
+  display: block;
+}
+.reader-rubric {
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: .66em;
+  line-height: 1.55;
+  font-style: italic;
+}
+.reader-source {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.communion-view {
+  width: min(100%, 820px);
+  padding-bottom: calc(var(--dock-height) + 28px);
+}
+.communion-heading {
+  margin-top: 30px;
+}
+.communion-option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+.communion-option {
+  min-height: 150px;
+  padding: 22px;
+  border: 1px solid var(--hairline);
+  border-radius: 28px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  background: linear-gradient(145deg, rgba(255,255,255,var(--glass-alpha)), rgba(255,255,255,var(--glass-soft-alpha)));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,var(--shine-alpha)), 0 20px 58px rgba(0,0,0,.18);
+  display: grid;
+  align-content: end;
+  gap: 7px;
+}
+.communion-option span {
+  font-family: var(--font-prayer);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+.communion-option em {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.35;
+  font-style: normal;
+}
+.communion-option small {
+  color: var(--gold-soft);
+  font-size: 11px;
+  font-weight: 900;
+}
+.communion-list {
+  margin-top: 24px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 18px;
+}
+.communion-list summary {
+  min-height: 44px;
+  color: var(--text-soft);
+  font-weight: 900;
+  cursor: pointer;
+  list-style-position: inside;
+}
+.communion-list .list-panel {
+  margin-top: 6px;
+}
+.search-suggestions {
+  margin-top: 2px;
+}
+.search-suggestions .suggestion-chip {
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .communion-heading {
+    margin-top: 24px;
+  }
+  .communion-option-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 22px;
+  }
+  .communion-option {
+    min-height: 112px;
+    padding: 18px;
+    border-radius: 24px;
+  }
+  .communion-option span {
+    font-size: 25px;
+  }
+  .reader-source {
+    margin-top: 34px;
+  }
+  .prayer-provenance {
+    margin-top: 18px;
+  }
+}
