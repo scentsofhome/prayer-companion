@@ -134,12 +134,12 @@ function savePersonal() { localStorage.setItem(STORAGE.personal, JSON.stringify(
 function saveAppearance() { localStorage.setItem(STORAGE.appearance, JSON.stringify(appearance)); }
 function saveReaderProgress() {
   if (reader?.kind === 'communion') {
-    localStorage.setItem(STORAGE.communion, JSON.stringify({ mode:reader.mode, variant:reader.variant, total:reader.steps.length, index:reader.index, savedAt:Date.now() }));
+    localStorage.setItem(STORAGE.communion, JSON.stringify({ mode:reader.mode, variant:reader.variant, total:reader.steps.length, index:reader.index, position:Number(reader.position)||0, savedAt:Date.now() }));
     return;
   }
   if (reader?.kind !== 'rule') return;
-  if (reader.index <= 0) { clearSavedReader(); return; }
-  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, duration:ruleDuration, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, savedAt: Date.now() }));
+  if (reader.index <= 0 && (Number(reader.position)||0) < .04) { clearSavedReader(); return; }
+  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, duration:ruleDuration, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, position:Number(reader.position)||0, savedAt: Date.now() }));
 }
 function getSavedReader() { return safeJSON(localStorage.getItem(STORAGE.reader), safeJSON(localStorage.getItem(LEGACY_STORAGE.reader), safeJSON(localStorage.getItem(OLDER_STORAGE.reader), safeJSON(localStorage.getItem(OLDEST_STORAGE.reader), null)))); }
 function clearSavedReader() { [STORAGE.reader, LEGACY_STORAGE.reader, OLDER_STORAGE.reader, OLDEST_STORAGE.reader].forEach(key => localStorage.removeItem(key)); }
@@ -671,7 +671,7 @@ function shortPrayerLabel(title) { return title.replace(/^A Prayer (Before|After
 function prayerTextHTML(p) {
   return (p?.text || []).map(text => {
     const clean = String(text).trim();
-    const heading = clean.match(/^((?:ODE\s+[IVX]+|Kontakion\s+\d+|Ekos\s+\d+|Troparion(?:,?\s+[^:]{1,40})?|Theotokion|Refrain|Prayer[^:]{0,70}):?)\s*(.*)$/i);
+    const heading = clean.match(/^((?:ODE\s+[IVX]+|PSALM\s+\d+|Kontakion\s+\d+|Ekos\s+\d+|Troparia?(?:,?\s+[^:]{1,40})?|Theotokion|Refrain|Prayer[^:]{0,70}):?)\s*(.*)$/i);
     if (heading) return `<p class="liturgical-section"><strong>${esc(heading[1])}</strong>${heading[2] ? ` <span>${esc(heading[2])}</span>` : ''}</p>`;
     const rubric = /^(?:\[|Then\b|This kontakion\b|Prostration\b|Note:)/i.test(clean);
     return `<p${rubric ? ' class="reader-rubric"' : ''}>${esc(clean)}</p>`;
@@ -751,7 +751,7 @@ function renderQuickSheet() {
 function openSheet() { quickSheet.classList.add('open'); quickSheet.setAttribute('aria-hidden', 'false'); }
 function closeSheet() { quickSheet.classList.remove('open'); quickSheet.setAttribute('aria-hidden', 'true'); }
 
-function startRule(index = 0) { const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)) }; openReader(); }
+function startRule(index = 0, position = 0) { const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)), position:clamp(Number(position)||0,0,1) }; openReader(); }
 function startSinglePrayer(id) {
   rememberPrayer(id);
   reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0, position: Number(readingPositions[id] || 0) };
@@ -759,14 +759,15 @@ function startSinglePrayer(id) {
 }
 function communionProgress(mode, variant, steps) {
   const saved = safeJSON(localStorage.getItem(STORAGE.communion), null);
-  if (!saved || saved.mode !== mode || saved.variant !== variant || saved.total !== steps.length) return 0;
-  return clamp(Number(saved.index) || 0, 0, Math.max(0, steps.length - 1));
+  if (!saved || saved.mode !== mode || saved.variant !== variant || saved.total !== steps.length) return { index:0, position:0 };
+  return { index:clamp(Number(saved.index)||0,0,Math.max(0,steps.length-1)), position:clamp(Number(saved.position)||0,0,1) };
 }
 function startCommunionRule(mode, variant = 'full') {
   const config = rulesData?.communionModes?.[mode];
   const steps = communionVariantIds(mode, variant).map(id => ({ type:'prayer', id, section: config.label }));
   if (!steps.length) { showToast('Communion prayers are unavailable'); return; }
-  reader = { kind:'communion', mode, variant, steps, index:communionProgress(mode, variant, steps) };
+  const saved = communionProgress(mode, variant, steps);
+  reader = { kind:'communion', mode, variant, steps, index:saved.index, position:saved.position };
   openReader();
 }
 async function requestWakeLock() {
@@ -803,20 +804,22 @@ function renderReaderStep(step) {
   return `<article class="prayer-page"><div class="reader-kicker">Intercessions</div><h1 class="reader-title">Remember, O Lord</h1><div class="reader-text">${Object.entries(personalLabels).map(([key,label]) => personal[key]?.length ? `<p><strong>${esc(label)}:</strong> ${esc(personal[key].join(', '))}</p>` : '').join('')}<p>Lord, have mercy.</p></div></article>`;
 }
 function saveCurrentReadingPosition() {
-  if (reader?.kind !== 'single') return;
+  if (!reader) return;
   const stage = $('reader-stage');
-  const id = reader.steps?.[0]?.id;
-  if (!stage || !id) return;
+  if (!stage) return;
   const max = Math.max(1, stage.scrollHeight - stage.clientHeight);
   const ratio = clamp(stage.scrollTop / max, 0, 1);
-  readingPositions[id] = ratio > .98 ? 0 : ratio;
-  localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions));
+  reader.position = ratio > .98 ? 0 : ratio;
+  if (reader.kind === 'single') {
+    const id = reader.steps?.[0]?.id;
+    if (id) { readingPositions[id] = reader.position; localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions)); }
+  } else saveReaderProgress();
 }
 function setupReaderStage() {
   const stage = $('reader-stage');
   if (!stage) return;
   requestAnimationFrame(() => {
-    if (reader?.kind === 'single' && reader.position) {
+    if (reader?.position) {
       const max = Math.max(0, stage.scrollHeight - stage.clientHeight);
       stage.scrollTop = max * reader.position;
     }
@@ -831,10 +834,11 @@ function nextReader() {
   if (!reader) return;
   if (reader.index >= reader.steps.length - 1) { completeRule(); return; }
   reader.index++;
+  reader.position = 0;
   softTap();
   renderReader();
 }
-function prevReader() { if (reader && reader.index > 0) { reader.index--; softTap(); renderReader(); } }
+function prevReader() { if (reader && reader.index > 0) { reader.index--; reader.position = 0; softTap(); renderReader(); } }
 function recordPrayerHistory(steps) {
   const now = Date.now();
   (steps || []).forEach(step => {
@@ -922,7 +926,7 @@ document.addEventListener('click', async (e) => {
   if (openPrayer) { closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); render('prayer'); return; }
   if (e.target.closest('[data-back]')) { render(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); requestAnimationFrame(() => { screen.scrollTop = previousScrollTop; }); return; }
   if (e.target.closest('[data-start-rule]')) { startRule(0); return; }
-  if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0); return; }
+  if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0, saved?.position || 0); return; }
   if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = p.id; rememberPrayer(p.id); render('prayer'); return; }
   const suggestion = e.target.closest('[data-search-suggestion]');
   if (suggestion) { searchQuery = suggestion.dataset.searchSuggestion || ''; render('search'); return; }
