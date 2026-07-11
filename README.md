@@ -2,6 +2,19 @@
 
 A premium Orthodox prayer rule Progressive Web App with a cleaner app-style Home screen, offline support, guided page-by-page prayer, Spotlight search, favorites, personal intercessions, rule presets, dynamic prayer planning, season mode, and liquid-glass controls.
 
+## Smart prayer release
+
+- Added intention-aware offline search for needs such as anxiety, study, grief, illness, confession, travel, and guidance.
+- Added coherent duration targets of approximately 5, 10, 20, or 40 minutes.
+- Added dedicated Before Communion and After Communion screens with full and shorter forms.
+- Communion progress and long-prayer reading position are remembered locally.
+- Added recently opened prayers to Home and Search.
+- Added structured styling for odes, kontakia, ikoi, troparia, refrains, and rubrics.
+- Added source and OCR-status information to prayer details.
+- The screen stays awake while the guided reader is open when the browser supports Wake Lock.
+- Search focus, mobile progress, navigation return position, and settings behavior were corrected.
+- Offline cache updated to `v25-smart-prayer`.
+
 ## Final serene polish
 
 - Split and cleaned the Jordanville prayer book text into individual prayers, canons, akathists, hymns, and Communion texts.
