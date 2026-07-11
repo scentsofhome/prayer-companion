@@ -1,4 +1,4 @@
-const VERSION = 'v17-final-serene';
+const VERSION = 'v18-mobile-cleanup';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -68,7 +68,7 @@ let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
 let selectedOffice = state.selectedOffice || (new Date().getHours() < 15 ? 'Morning' : 'Evening');
 let ruleLength = state.ruleLength || 'standard';
 let seasonMode = state.seasonMode || 'ordinary';
-let communionMode = state.communionMode || 'none';
+let communionMode = 'none';
 let plannerMode = state.plannerMode || 'balanced';
 let activePreset = state.activePreset || 'custom';
 let favorites = new Set(storedJSON('favorites', []) || []);
@@ -437,26 +437,35 @@ function renderHome() {
   const pday = prayerOfDay();
   const now = new Date();
   const actualDay = dayNames[now.getDay()];
-  const dateLine = now.toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' });
+  const dateLine = now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
   const isToday = selectedDay === actualDay;
-  return `<div class="view home-v17 home-final-serene">
-    <section class="home-main-stage" aria-label="Today’s prayer">
+  const progressText = hasResume ? `Continue at step ${saved.index + 1} of ${steps.length}` : `${steps.length} steps • about ${ruleMinutes(steps)} min`;
+  return `<div class="view home-v17 home-v18">
+    <section class="home-main-stage" aria-label="Prayer rule">
       <header class="home-topbar home-floating-topbar">
         <div class="app-wordmark"><span class="wordmark-mark" aria-hidden="true"></span><span>Prayer Rule</span></div>
-        <button class="home-date-pill" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' • Use today'}</button>
+        <button class="home-date-pill ${isToday ? 'is-today' : ''}" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' • Today'}</button>
       </header>
 
       <div class="home-center-window">
         <section class="home-focus-card home-prayer-window">
           <p class="micro-label">${esc(segments.seasonTitle)} • ${esc(segments.cycleTitle)}</p>
+          <div class="home-day-picker" role="group" aria-label="Choose day">
+            ${dayNames.map(day => `<button class="${selectedDay === day ? 'active' : ''}" type="button" data-day-set="${day}" aria-label="${day}" aria-pressed="${selectedDay === day}">${day.slice(0,3)}</button>`).join('')}
+          </div>
           <h1 class="home-rule-title">${esc(selectedOffice)} Prayer</h1>
           <p class="home-intention">${esc(segments.theme || 'A quiet beginning for today’s prayer rule.')}</p>
           <div class="home-office-switch" aria-label="Choose office">
             <button class="${selectedOffice === 'Morning' ? 'active' : ''}" type="button" data-office-set="Morning">Morning</button>
             <button class="${selectedOffice === 'Evening' ? 'active' : ''}" type="button" data-office-set="Evening">Evening</button>
           </div>
+          <p class="home-rule-meta">${esc(progressText)}</p>
           <div class="home-action-row">
             <button class="primary-button home-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}>${hasResume ? 'Resume Prayer' : 'Pray'}</button>
+          </div>
+          <div class="home-communion-actions" aria-label="Holy Communion prayers">
+            <button type="button" data-start-communion="preparation"><span>Before Communion</span><em>Preparation prayers</em></button>
+            <button type="button" data-start-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving prayers</em></button>
           </div>
         </section>
       </div>
@@ -466,8 +475,8 @@ function renderHome() {
 
     <section class="home-explore" id="home-explore" aria-label="Prayer shortcuts">
       <div class="home-section-heading">
-        <p class="micro-label">For later</p>
-        <h2>Open a prayer another way</h2>
+        <p class="micro-label">Prayer library</p>
+        <h2>Open another prayer</h2>
       </div>
       <nav class="home-command-row" aria-label="Quick actions">
         <button class="home-command" type="button" data-open-sheet><span>Quick Prayers</span><em>Short prayers for now</em></button>
@@ -553,19 +562,41 @@ function renderPrayerDetail(id) {
 }
 function renderSettings() {
   const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
-  const presetCards = Object.entries(rulePresets()).map(([id, preset]) => `<button class="preset-button ${activePreset === id ? 'active' : ''}" type="button" data-rule-preset="${esc(id)}"><span>${esc(preset.label)}</span><em>${esc(preset.description || '')}</em></button>`).join('');
-  return `<div class="view"><p class="micro-label">Settings</p><h1 class="page-title">Make it yours</h1><p class="subtitle">Change the rule, season, names, reader typography, and the liquid-glass surface.</p><div class="form-grid">
-    <div class="form-card preset-card"><h3>Presets</h3><p>Choose a ready-made rule shape.</p><div class="preset-grid">${presetCards}</div></div>
-    <div class="form-card"><h3>Rule</h3><p>Choose how much to pray by default.</p><select class="form-control" data-setting="ruleLength"><option value="short">Short</option><option value="standard">Standard</option><option value="extended">Extended</option></select></div>
-    <div class="form-card"><h3>Rule Style</h3><p>Steer how the standard and extended rule choose prayers.</p><select class="form-control" data-setting="plannerMode">${plannerOptions}</select></div>
-    <div class="form-card"><h3>Day</h3><p>Choose a day manually or return Home for today.</p><select class="form-control" data-setting="selectedDay">${dayNames.map(day => `<option value="${day}">${day}</option>`).join('')}</select></div>
-    <div class="form-card"><h3>Office</h3><p>Morning or evening.</p><div class="segment"><button type="button" data-office-set="Morning">Morning</button><button type="button" data-office-set="Evening">Evening</button></div></div>
-    <div class="form-card"><h3>Season</h3><p>Let the prayer rule follow a devotional season without changing the app appearance.</p><select class="form-control" data-setting="seasonMode">${Object.entries(seasonOptions).map(([id,s]) => `<option value="${esc(id)}">${esc(s.label)}</option>`).join('')}</select></div>
-    <div class="form-card"><h3>Communion</h3><p>Add preparation or thanksgiving before the final closing.</p><select class="form-control" data-setting="communionMode"><option value="none">Off</option><option value="preparation">Before Communion</option><option value="thanksgiving">After Communion</option></select></div>
-    <div class="form-card"><h3>Appearance</h3><p>Use dark or light mode.</p><div class="segment"><button type="button" data-theme-set="dark">Dark</button><button type="button" data-theme-set="light">Light</button></div></div>
-    <div class="form-card"><h3>Liquid Glass</h3><p>Adjust clarity, frost, and reflection.</p>${range('clarity','Clarity',0,80,appearance.clarity)}${range('frost','Frost',0,42,appearance.frost)}${range('reflection','Reflection',0,90,appearance.reflection)}</div>
-    <div class="form-card"><h3>Typography</h3><p>Tune the reader without changing the prayers.</p>${range('scale','Text size',86,138,Math.round(appearance.scale*100))}${range('leading','Line spacing',140,200,Math.round(appearance.leading*100))}${range('width','Text width',540,880,appearance.width)}</div>
-  </div>${renderPersonalSettings()}${renderGlossary()}</div>`;
+  return `<div class="view settings-clean">
+    <p class="micro-label">Settings</p>
+    <h1 class="page-title">Settings</h1>
+    <p class="subtitle">Keep the prayer rule simple. Day, time of day, and Communion prayers are chosen directly from Home.</p>
+    <div class="settings-sections">
+      <section class="quiet-card settings-section">
+        <div class="settings-section-head"><div><p class="micro-label">Daily rule</p><h3>Prayer selection</h3></div></div>
+        <div class="settings-row">
+          <label for="setting-length"><strong>Length</strong><span>How long the regular morning or evening rule should be.</span></label>
+          <select id="setting-length" class="form-control" data-setting="ruleLength"><option value="short">Short</option><option value="standard">Standard</option><option value="extended">Extended</option></select>
+        </div>
+        <div class="settings-row">
+          <label for="setting-style"><strong>Emphasis</strong><span>Which kinds of prayers appear more often.</span></label>
+          <select id="setting-style" class="form-control" data-setting="plannerMode">${plannerOptions}</select>
+        </div>
+        <div class="settings-row">
+          <label for="setting-season"><strong>Season</strong><span>Add prayers appropriate to the current devotional season.</span></label>
+          <select id="setting-season" class="form-control" data-setting="seasonMode">${Object.entries(seasonOptions).map(([id,item]) => `<option value="${esc(id)}">${esc(item.label)}</option>`).join('')}</select>
+        </div>
+      </section>
+
+      <section class="quiet-card settings-section">
+        <div class="settings-section-head"><div><p class="micro-label">Appearance</p><h3>Reading comfort</h3></div></div>
+        <div class="settings-row">
+          <div><strong>Theme</strong><span>Choose dark or light appearance.</span></div>
+          <div class="segment compact-segment"><button type="button" data-theme-set="dark">Dark</button><button type="button" data-theme-set="light">Light</button></div>
+        </div>
+        <div class="settings-sliders">
+          ${range('scale','Text size',86,138,Math.round(appearance.scale*100))}
+          ${range('leading','Line spacing',140,200,Math.round(appearance.leading*100))}
+        </div>
+      </section>
+    </div>
+    ${renderPersonalSettings()}
+  </div>`;
 }
 function range(key,label,min,max,value){ return `<div class="range-row"><label><span>${label}</span><strong id="range-${key}">${value}</strong></label><input type="range" min="${min}" max="${max}" value="${value}" data-range="${key}"></div>`; }
 function renderPersonalSettings(){
@@ -581,6 +612,13 @@ function closeSheet() { quickSheet.classList.remove('open'); quickSheet.setAttri
 
 function startRule(index = 0) { const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)) }; openReader(); }
 function startSinglePrayer(id) { reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0 }; openReader(); }
+function startCommunionRule(mode) {
+  const config = rulesData?.communionModes?.[mode];
+  const steps = (config?.ids || []).filter(id => prayer(id)).map(id => ({ type:'prayer', id, section: config.label }));
+  if (!steps.length) { showToast('Communion prayers are unavailable'); return; }
+  reader = { kind:'communion', mode, steps, index:0 };
+  openReader();
+}
 function openReader() { document.body.classList.add('reader-mode'); renderReader(); resetIdle(); }
 function closeReader() { document.body.classList.remove('reader-mode', 'ambient-mode'); clearTimeout(idleTimer); reader = null; render(currentView === 'prayer' ? 'prayer' : 'home'); }
 function renderReader() {
@@ -590,7 +628,7 @@ function renderReader() {
   const isLast = reader.index >= steps.length - 1;
   const content = renderReaderStep(step);
   screen.innerHTML = `<div class="reader-view">
-    <div class="reader-top"><button class="icon-button" type="button" data-close-reader>×</button><div class="bead-rail">${steps.map((_,i) => `<span class="bead ${i < reader.index ? 'done' : ''} ${i === reader.index ? 'current' : ''}"></span>`).join('')}</div><button class="icon-button" type="button" data-open-sheet>＋</button></div>
+    <div class="reader-top"><button class="icon-button" type="button" data-close-reader>×</button><div class="reader-progress-wrap" role="progressbar" aria-label="Prayer progress" aria-valuemin="1" aria-valuemax="${steps.length}" aria-valuenow="${reader.index + 1}"><div class="reader-progress-track"><span style="width:${((reader.index + 1) / Math.max(1, steps.length)) * 100}%"></span></div><small>${reader.index + 1} of ${steps.length}</small></div><button class="icon-button" type="button" data-open-sheet>＋</button></div>
     <div class="reader-stage" id="reader-stage">${content}</div>
     <div class="reader-foot"><button class="reader-control" type="button" data-reader-prev ${reader.index === 0 ? 'disabled' : ''}>Previous</button><div class="reader-count">${reader.index+1} / ${steps.length}</div><button class="reader-control ${isLast ? 'reader-done' : ''}" type="button" data-reader-next>${isLast ? 'Finish' : 'Next'}</button></div>
   </div>`;
@@ -629,7 +667,6 @@ function completeRule() {
     reader = null;
     document.body.classList.remove('reader-mode', 'ambient-mode');
     render('home');
-    showToast('May God remember your prayers.');
   } else closeReader();
 }
 function resetIdle() {
@@ -673,7 +710,7 @@ screen.addEventListener('change', (e) => {
   if (key === 'seasonMode') seasonMode = setting.value;
   if (key === 'communionMode') communionMode = setting.value;
   if (key === 'plannerMode') plannerMode = setting.value;
-  applyAppearance(); saveState(); render('settings');
+  applyAppearance(); saveState(); syncSettingsUI();
 });
 
 document.addEventListener('click', async (e) => {
@@ -691,7 +728,11 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; activePrayerId = p.id; render('prayer'); return; }
   const suggestion = e.target.closest('[data-search-suggestion]');
   if (suggestion) { searchQuery = suggestion.dataset.searchSuggestion || ''; render('search'); return; }
-  if (e.target.closest('[data-use-today]')) { setTodayDefaults(); render('home'); return; }
+  if (e.target.closest('[data-use-today]')) { setTodayDefaults(); clearSavedReader(); render('home'); return; }
+  const day = e.target.closest('[data-day-set]');
+  if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); clearSavedReader(); saveState(); render('home'); return; }
+  const communion = e.target.closest('[data-start-communion]');
+  if (communion) { startCommunionRule(communion.dataset.startCommunion); return; }
   const preset = e.target.closest('[data-rule-preset]');
   if (preset) { applyPreset(preset.dataset.rulePreset); render(currentView === 'rule' ? 'rule' : 'settings'); return; }
   if (e.target.closest('[data-scroll-explore]')) { screen.querySelector('#home-explore')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -735,9 +776,7 @@ document.addEventListener('touchend', (e) => {
 
 function syncSettingsUI() {
   const ruleSelect = screen.querySelector('[data-setting="ruleLength"]'); if (ruleSelect) ruleSelect.value = ruleLength;
-  const daySelect = screen.querySelector('[data-setting="selectedDay"]'); if (daySelect) daySelect.value = selectedDay;
   const seasonSelect = screen.querySelector('[data-setting="seasonMode"]'); if (seasonSelect) seasonSelect.value = seasonMode;
-  const communionSelect = screen.querySelector('[data-setting="communionMode"]'); if (communionSelect) communionSelect.value = communionMode;
   const plannerSelect = screen.querySelector('[data-setting="plannerMode"]'); if (plannerSelect) plannerSelect.value = plannerMode;
   screen.querySelectorAll('[data-theme-set]').forEach(b => b.classList.toggle('active', b.dataset.themeSet === appearance.theme));
   screen.querySelectorAll('[data-office-set]').forEach(b => b.classList.toggle('active', b.dataset.officeSet === selectedOffice));
