@@ -1,4 +1,4 @@
-const VERSION = 'v19.2.1-prayer-guide';
+const VERSION = 'v19.2.2-prayer-guide';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -188,7 +188,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.2.1').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.2.2').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -483,6 +483,57 @@ function recommendationCard(item, rank, query) {
   const p = item.p;
   const minutes = Math.max(.5, estimatedMinutesForPrayer(p));
   return `<button class="recommendation-card" type="button" data-open-prayer="${esc(p.id)}"><span class="recommendation-rank">0${rank}</span><span class="recommendation-copy"><em>${esc(p.category)}</em><strong>${esc(p.title)}</strong><small>${esc(recommendationReason(item, query))}</small><b>About ${minutes.toFixed(minutes < 1 ? 1 : 0)} min</b></span><span class="recommendation-open">Open</span></button>`;
+}
+function setTodayDefaults() {
+  const now = new Date();
+  selectedDay = dayNames[now.getDay()];
+  selectedOffice = now.getHours() < 15 ? 'Morning' : 'Evening';
+  setCustomPreset();
+  saveState();
+}
+function homeBeads(steps, savedIndex = 0, hasProgress = false) {
+  const total = Math.min(steps.length || 1, 12);
+  const progress = Math.max(0, Math.min(total - 1, Math.round((savedIndex / Math.max(1, steps.length - 1)) * (total - 1))));
+  return `<div class="home-rope ${hasProgress ? 'has-progress' : 'not-started'}" aria-hidden="true">${Array.from({length: total}, (_, i) => {
+    const done = hasProgress && i < progress;
+    const current = hasProgress && i === progress;
+    return `<span class="home-bead ${done ? 'done' : ''} ${current ? 'current' : ''}"></span>`;
+  }).join('')}</div>`;
+}
+function nextStepTitle(steps, index) {
+  const step = steps[index];
+  if (!step) return 'Prayer';
+  if (step.type === 'prayer') return prayer(step.id)?.title || 'Prayer';
+  if (step.type === 'psalms') return 'Appointed Psalms';
+  return 'Personal Intercessions';
+}
+
+function shouldAutofocusSearch() {
+  return window.matchMedia?.('(pointer: fine)').matches || window.innerWidth >= 760;
+}
+
+function render(view = currentView) {
+  currentView = view;
+  document.body.classList.remove('reader-mode', 'ambient-mode');
+  document.body.classList.toggle('search-mode', view === 'search');
+  document.body.classList.toggle('home-mode', view === 'home');
+  updateDock();
+  saveState();
+  let html = '';
+  if (view === 'home') html = renderHome();
+  else if (view === 'rule') html = renderRule();
+  else if (view === 'library') html = renderLibrary();
+  else if (view === 'category') html = renderCategory(activeCategory);
+  else if (view === 'search') html = renderSearch();
+  else if (view === 'settings') html = renderSettings();
+  else if (view === 'prayer') html = renderPrayerDetail(activePrayerId);
+  else if (view === 'communion') html = renderCommunion(activeCommunionMode);
+  screen.innerHTML = html;
+  if (view === 'search') setTimeout(() => { if (shouldAutofocusSearch()) $('search-field')?.focus(); }, 80);
+  screen.scrollTop = 0;
+}
+function updateDock() {
+  document.querySelectorAll('[data-nav]').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === currentView || (currentView === 'category' && btn.dataset.nav === 'library') || (currentView === 'prayer' && btn.dataset.nav === 'library')));
 }
 function renderHome() {
   const segments = buildRuleSegments();
