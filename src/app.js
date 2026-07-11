@@ -182,7 +182,12 @@ async function init() {
     renderQuickSheet();
     render('home');
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (sessionStorage.getItem('prayerRule.swReloaded')) return;
+        sessionStorage.setItem('prayerRule.swReloaded', '1');
+        location.reload();
+      });
+      navigator.serviceWorker.register('./service-worker.js?v=19.1').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
