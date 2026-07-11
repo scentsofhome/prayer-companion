@@ -905,3 +905,239 @@ button:focus-visible, input:focus-visible, select:focus-visible {
     border-radius: 26px;
   }
 }
+
+
+/* v18 mobile cleanup: scalable progress, direct rule controls, and simplified settings */
+.reader-progress-wrap {
+  flex: 1;
+  max-width: 580px;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0 auto;
+  padding: 0 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(255,255,255,var(--glass-alpha)), rgba(255,255,255,var(--glass-soft-alpha)));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,var(--shine-alpha)), var(--shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+}
+.reader-progress-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.14);
+}
+.reader-progress-track span {
+  display: block;
+  height: 100%;
+  min-width: 5px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #c87924, #ffe5a6);
+  box-shadow: 0 0 14px rgba(246,180,77,.34);
+  transition: width .25s ease;
+}
+.reader-progress-wrap small {
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.reader-control:disabled {
+  opacity: .38;
+  cursor: default;
+}
+
+.home-v18 .home-prayer-window {
+  padding-block: clamp(26px, 5.5vh, 52px);
+}
+.home-day-picker {
+  width: min(100%, 390px);
+  margin: 0 auto 24px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+.home-day-picker button {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+  cursor: pointer;
+}
+.home-day-picker button.active {
+  color: var(--text);
+  border-color: var(--hairline);
+  background: rgba(255,255,255,.11);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16);
+}
+.home-rule-meta {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+.home-v18 .home-action-row {
+  margin-top: 14px;
+}
+.home-communion-actions {
+  width: min(100%, 480px);
+  margin: 18px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.home-communion-actions button {
+  min-height: 58px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 20px;
+  color: var(--text);
+  background: rgba(255,255,255,.055);
+  cursor: pointer;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+}
+.home-communion-actions span {
+  font-size: 13px;
+  font-weight: 950;
+}
+.home-communion-actions em {
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.settings-clean {
+  width: min(100%, 780px);
+  padding-bottom: 24px;
+}
+.settings-sections {
+  display: grid;
+  gap: 16px;
+  margin-top: 28px;
+}
+.settings-section {
+  padding: clamp(20px, 4vw, 30px);
+}
+.settings-section-head {
+  margin-bottom: 4px;
+}
+.settings-section-head h3 {
+  margin: 0;
+  font-size: 30px;
+}
+.settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0;
+  border-top: 1px solid var(--hairline);
+}
+.settings-row strong,
+.settings-row label {
+  color: var(--text);
+}
+.settings-row label,
+.settings-row > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+.settings-row span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.compact-segment {
+  width: 100%;
+  box-shadow: none;
+}
+.settings-sliders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+.settings-clean > .quiet-card {
+  margin-top: 16px !important;
+}
+
+@media (max-width: 640px) {
+  .reader-top {
+    padding-inline: 10px;
+    gap: 7px;
+  }
+  .reader-top .icon-button {
+    min-width: 42px;
+    min-height: 42px;
+  }
+  .reader-progress-wrap {
+    min-height: 42px;
+    padding: 0 11px;
+    gap: 8px;
+  }
+  .reader-progress-wrap small {
+    font-size: 10px;
+  }
+  .home-v18 .home-focus-card {
+    padding: 24px 14px 22px;
+    border-radius: 32px;
+  }
+  .home-v18 .home-rule-title {
+    font-size: clamp(48px, 14vw, 68px);
+  }
+  .home-day-picker {
+    margin-bottom: 18px;
+    gap: 2px;
+  }
+  .home-day-picker button {
+    min-height: 34px;
+    font-size: 10px;
+  }
+  .home-v18 .home-intention {
+    margin-top: 12px;
+    line-height: 1.35;
+  }
+  .home-v18 .home-office-switch {
+    margin-top: 15px;
+  }
+  .home-v18 .home-begin {
+    min-height: 54px;
+  }
+  .home-communion-actions {
+    margin-top: 15px;
+    padding-top: 14px;
+    gap: 6px;
+  }
+  .home-communion-actions button {
+    min-height: 54px;
+    border-radius: 18px;
+  }
+  .settings-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 0;
+  }
+  .settings-sliders {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .settings-clean .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
