@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orthodox-prayer-book-v22-rule-presets';
+const CACHE_NAME = 'orthodox-prayer-book-v23-mobile-cleanup';
 const APP_SHELL = [
   './',
   './index.html',
