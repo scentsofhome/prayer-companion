@@ -1,4 +1,4 @@
-const VERSION = 'v19.2.3-prayer-guide';
+const VERSION = 'v19.3-smooth-release';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -484,6 +484,16 @@ function recommendationCard(item, rank, query) {
   const minutes = Math.max(.5, estimatedMinutesForPrayer(p));
   return `<button class="recommendation-card" type="button" data-open-prayer="${esc(p.id)}"><span class="recommendation-rank">0${rank}</span><span class="recommendation-copy"><em>${esc(p.category)}</em><strong>${esc(p.title)}</strong><small>${esc(recommendationReason(item, query))}</small><b>About ${minutes.toFixed(minutes < 1 ? 1 : 0)} min</b></span><span class="recommendation-open">Open</span></button>`;
 }
+function guideResultsHTML(query) {
+  const q = String(query || '').trim();
+  const ranked = searchPrayers(q, true);
+  const recommendations = ranked.slice(0,3);
+  const suggestions = ['I’m anxious about tomorrow', 'I have an exam', 'Someone I love is sick', 'I need to forgive someone', 'Someone close to me died', 'I’m preparing for Communion'];
+  const recent = recentPrayers(4);
+  if (!q) return `<div class="guide-prompts">${suggestions.map(item => `<button class="guide-prompt" type="button" data-search-suggestion="${esc(item)}">${esc(item)}</button>`).join('')}</div>${recent.length ? `<section class="search-recent"><p class="micro-label">Recently opened</p><div class="list-panel">${recent.map(prayerRow).join('')}</div></section>` : ''}`;
+  if (!recommendations.length) return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>No close match yet</h2></div></div><div class="quiet-card"><p>Try describing the need more simply, such as peace, illness, study, grief, forgiveness, travel, or repentance.</p></div></section>`;
+  return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>Three prayers to consider</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('')}</div>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>`;
+}
 function setTodayDefaults() {
   const now = new Date();
   selectedDay = dayNames[now.getDay()];
@@ -533,7 +543,7 @@ function render(view = currentView) {
   screen.scrollTop = 0;
 }
 function updateDock() {
-  document.querySelectorAll('[data-nav]').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === currentView || (currentView === 'category' && btn.dataset.nav === 'library') || (currentView === 'prayer' && btn.dataset.nav === 'library')));
+  document.querySelectorAll('[data-nav]').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === currentView || (currentView === 'category' && btn.dataset.nav === 'library') || (currentView === 'prayer' && btn.dataset.nav === 'library') || (currentView === 'communion' && btn.dataset.nav === 'home')));
 }
 function renderHome() {
   const segments = buildRuleSegments();
@@ -615,7 +625,7 @@ function renderRule() {
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
       <div class="top-actions"><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
-    <div class="quiet-card"><div class="stat-row">${presetPill}<span class="stat-pill">About ${ruleDuration} min target</span>${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
+    <div class="quiet-card"><div class="stat-row">${presetPill}${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
     <div class="rule-path">${stepRows}</div>
   </div>`;
 }
@@ -649,17 +659,12 @@ function prayerRow(p) {
   return `<button class="prayer-row" type="button" data-open-prayer="${esc(p.id)}"><span class="row-glyph">✠</span><span><span class="prayer-row-title">${esc(p.title)}</span><span class="prayer-row-sub">${esc(p.category)}</span></span></button>`;
 }
 function renderSearch() {
-  const q = searchQuery.trim();
-  const ranked = searchPrayers(q, true);
-  const recommendations = ranked.slice(0,3);
-  const suggestions = ['I’m anxious about tomorrow', 'I have an exam', 'Someone I love is sick', 'I need to forgive someone', 'Someone close to me died', 'I’m preparing for Communion'];
-  const recent = recentPrayers(4);
   return `<div class="view prayer-guide"><section class="prayer-guide-panel" aria-label="Prayer guide">
     <p class="micro-label">Private prayer guide</p>
     <h1 class="page-title">What is on your heart?</h1>
     <p class="subtitle">Describe what you are facing. The guide recommends existing prayers from your library; nothing is generated or sent anywhere.</p>
     <label class="search-box glass prayer-guide-search"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg><input id="search-field" value="${esc(searchQuery)}" placeholder="For example: I’m worried about my exam…" autocomplete="off" inputmode="search" enterkeyhint="search" autocapitalize="sentences"></label>
-    ${q ? `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>${recommendations.length ? 'Three prayers to consider' : 'No close match yet'}</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('') || `<div class="quiet-card"><p>Try describing the need more simply, such as peace, illness, study, grief, forgiveness, travel, or repentance.</p></div>`}</div>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>` : `<div class="guide-prompts">${suggestions.map(item => `<button class="guide-prompt" type="button" data-search-suggestion="${esc(item)}">${esc(item)}</button>`).join('')}</div>${recent.length ? `<section class="search-recent"><p class="micro-label">Recently opened</p><div class="list-panel">${recent.map(prayerRow).join('')}</div></section>` : ''}`}
+    <div id="guide-results">${guideResultsHTML(searchQuery)}</div>
   </section></div>`;
 }
 function shortPrayerLabel(title) { return title.replace(/^A Prayer (Before|After) /,'$1 ').replace(/^The /,'').replace('The Jesus Prayer','Jesus Prayer').replace('The Lenten Prayer of Saint Ephrem','St. Ephrem'); }
@@ -874,14 +879,9 @@ function toggleFav(id) { favorites.has(id) ? favorites.delete(id) : favorites.ad
 screen.addEventListener('input', (e) => {
   const search = e.target.closest('#search-field');
   if (search) {
-    const cursor = search.selectionStart ?? search.value.length;
     searchQuery = search.value;
-    render('search');
-    const replacement = $('search-field');
-    if (replacement) {
-      replacement.focus({ preventScroll: true });
-      replacement.setSelectionRange(cursor, cursor);
-    }
+    const results = $('guide-results');
+    if (results) results.innerHTML = guideResultsHTML(searchQuery);
     return;
   }
   const rangeInput = e.target.closest('[data-range]');
@@ -923,12 +923,12 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-back]')) { render(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); requestAnimationFrame(() => { screen.scrollTop = previousScrollTop; }); return; }
   if (e.target.closest('[data-start-rule]')) { startRule(0); return; }
   if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0); return; }
-  if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; activePrayerId = p.id; render('prayer'); return; }
+  if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = p.id; rememberPrayer(p.id); render('prayer'); return; }
   const suggestion = e.target.closest('[data-search-suggestion]');
   if (suggestion) { searchQuery = suggestion.dataset.searchSuggestion || ''; render('search'); return; }
-  if (e.target.closest('[data-use-today]')) { setTodayDefaults(); clearSavedReader(); render('home'); return; }
+  if (e.target.closest('[data-use-today]')) { setTodayDefaults(); render('home'); return; }
   const day = e.target.closest('[data-day-set]');
-  if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); clearSavedReader(); saveState(); render('home'); return; }
+  if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); saveState(); render('home'); return; }
   const communionPage = e.target.closest('[data-open-communion]');
   if (communionPage) { activeCommunionMode = communionPage.dataset.openCommunion; render('communion'); return; }
   const communion = e.target.closest('[data-start-communion]');
