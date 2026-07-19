@@ -1,4 +1,4 @@
-const VERSION = 'v21.0.0-intentional-ui';
+const VERSION = 'v22.0.0-guided-prayer';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -9,7 +9,9 @@ function storageBundle(version) {
     history: `prayerRule.${version}.history`,
     recent: `prayerRule.${version}.recent`,
     positions: `prayerRule.${version}.positions`,
-    communion: `prayerRule.${version}.communion`
+    communion: `prayerRule.${version}.communion`,
+    tailoring: `prayerRule.${version}.tailoring`,
+    completion: `prayerRule.${version}.completion`
   };
 }
 const STORAGE = storageBundle('v17serene');
@@ -59,14 +61,16 @@ const searchIntents = {
   guidance: ['guidance','decision','unknown','will','wisdom','discernment'],
   forgiveness: ['forgive','forgiveness','enemy','enemies','reconciliation','love','mercy']
 };
-const searchStopWords = new Set(['a','an','and','are','for','i','in','is','m','im','me','my','need','someone','of','on','please','prayer','the','to','with']);
+const searchStopWords = new Set(['a','am','an','and','are','for','i','in','is','m','im','me','my','need','someone','of','on','please','prayer','the','to','with']);
 
 const $ = (id) => document.getElementById(id);
 const screen = $('screen');
-const dock = $('bottom-dock');
+const appChrome = $('app-chrome');
 const quickSheet = $('quick-sheet');
 const quickList = $('quick-list');
 const toast = $('toast');
+const assistantPanel = $('assistant-panel');
+const assistantContent = $('assistant-content');
 const COMPANION_ENDPOINT = 'https://prayer-companion-ai.scentsofhome4.workers.dev';
 const companionFeatures = {
   reflect: {
@@ -134,6 +138,12 @@ let companionFeature = 'reflect';
 let companionDraft = '';
 let companionContext = '';
 let companionContextLabel = '';
+let assistantOpen = false;
+let companionPlacement = 'panel';
+let sessionCustomization = safeJSON(localStorage.getItem(STORAGE.tailoring), null);
+let sessionCompletion = safeJSON(localStorage.getItem(STORAGE.completion), null);
+let sessionGuideSending = false;
+let lastTranscriptScroll = 0;
 
 let state = storedJSON('state', {}) || {};
 let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
@@ -154,6 +164,7 @@ let activeCommunionMode = 'preparation';
 let previousScrollTop = 0;
 let wakeLock = null;
 let positionTimer = null;
+let sessionMoment = window.PrayerSessionTime?.forDate(new Date()) || { day:dayNames[new Date().getDay()], office:new Date().getHours() < 15 ? 'Morning' : 'Evening', lateNight:false, greeting:'Welcome', effectiveDate:new Date(), dateLabel:'' };
 
 function safeJSON(raw, fallback = null) { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function storedJSON(kind, fallback = null) {
@@ -166,6 +177,32 @@ function storedJSON(kind, fallback = null) {
   return safeJSON(localStorage.getItem(OLDEST_STORAGE[kind]), fallback);
 }
 function esc(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function inlineMarkdown(value) {
+  return esc(value)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/(^|[^_])_([^_\n]+)_/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+}
+function markdownHTML(value) {
+  const lines = String(value || '').replace(/\r/g, '').split('\n');
+  const output = [];
+  let list = [];
+  const flushList = () => { if (list.length) { output.push(`<ul>${list.map(item => `<li>${inlineMarkdown(item)}</li>`).join('')}</ul>`); list = []; } };
+  for (const raw of lines) {
+    const line = raw.trim();
+    const bullet = line.match(/^[-•]\s+(.+)/);
+    if (bullet) { list.push(bullet[1]); continue; }
+    flushList();
+    if (!line) continue;
+    const heading = line.match(/^#{1,3}\s+(.+)/);
+    if (heading) output.push(`<h3>${inlineMarkdown(heading[1])}</h3>`);
+    else output.push(`<p>${inlineMarkdown(line)}</p>`);
+  }
+  flushList();
+  return output.join('');
+}
 function norm(value) { return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
 function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
 function todayKey(d = new Date()) {
@@ -182,6 +219,14 @@ function uniqueIds(ids) { return [...new Set((ids || []).filter(Boolean))]; }
 function prayer(id) { return byId.get(id); }
 function showToast(message) { toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.t); showToast.t = setTimeout(() => toast.classList.remove('show'), 1500); }
 function saveState() { localStorage.setItem(STORAGE.state, JSON.stringify({ selectedDay, selectedOffice, ruleLength, ruleDuration, seasonMode, communionMode, plannerMode, activePreset })); }
+function saveTailoring() {
+  if (sessionCustomization) localStorage.setItem(STORAGE.tailoring, JSON.stringify(sessionCustomization));
+  else localStorage.removeItem(STORAGE.tailoring);
+}
+function saveCompletion() {
+  if (sessionCompletion) localStorage.setItem(STORAGE.completion, JSON.stringify(sessionCompletion));
+  else localStorage.removeItem(STORAGE.completion);
+}
 function saveFavorites() { localStorage.setItem(STORAGE.favorites, JSON.stringify([...favorites])); }
 function savePersonal() { localStorage.setItem(STORAGE.personal, JSON.stringify(personal)); }
 function saveAppearance() { localStorage.setItem(STORAGE.appearance, JSON.stringify(appearance)); }
@@ -223,6 +268,9 @@ function applyAppearance() {
 }
 
 async function init() {
+  sessionMoment = window.PrayerSessionTime?.forDate(new Date()) || sessionMoment;
+  selectedDay = sessionMoment.day;
+  selectedOffice = sessionMoment.office;
   applyAppearance();
   try {
     const [p, r] = await Promise.all([
@@ -237,11 +285,11 @@ async function init() {
     render('home');
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('prayerRule.swReloaded.v19.3')) return;
-        sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
+        if (sessionStorage.getItem('prayerRule.swReloaded.v22')) return;
+        sessionStorage.setItem('prayerRule.swReloaded.v22', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=21.0.0').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=22.0.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -471,7 +519,62 @@ function stepsFromSegments(segments) {
   segments.closing.forEach(id => prayer(id) && steps.push({ type:'prayer', id, section:'Closing' }));
   return steps;
 }
-function currentSteps() { return stepsFromSegments(buildRuleSegments()); }
+function applySessionTailoring(baseSteps) {
+  const custom = sessionCustomization;
+  if (!custom || custom.day !== selectedDay || custom.office !== selectedOffice) return baseSteps;
+  const removed = new Set(arrayValue(custom.removeIds));
+  let steps = baseSteps.filter(step => step.type !== 'prayer' || ['Opening','Closing'].includes(step.section) || !removed.has(step.id));
+  const existing = new Set(steps.filter(step => step.type === 'prayer').map(step => step.id));
+  const additions = arrayValue(custom.focusIds).filter(id => prayer(id) && !removed.has(id));
+  const closingIndex = steps.findIndex(step => step.section === 'Closing');
+  const insertAt = closingIndex < 0 ? steps.length : closingIndex;
+  const addedSteps = additions.filter(id => !existing.has(id)).map(id => ({ type:'prayer', id, section:'Tailored for this session' }));
+  steps.splice(insertAt, 0, ...addedSteps);
+
+  const priority = arrayValue(custom.moveFirstIds);
+  if (priority.length) {
+    const frame = steps.filter(step => step.section === 'Opening');
+    const closing = steps.filter(step => step.section === 'Closing');
+    const middle = steps.filter(step => step.section !== 'Opening' && step.section !== 'Closing');
+    middle.sort((a, b) => {
+      const ai = a.type === 'prayer' ? priority.indexOf(a.id) : -1;
+      const bi = b.type === 'prayer' ? priority.indexOf(b.id) : -1;
+      return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+    });
+    steps = [...frame, ...middle, ...closing];
+  }
+
+  const target = clamp(Number(custom.minutes) || ruleDuration, 3, 45);
+  const removable = () => steps
+    .map((step, index) => ({ step, index, minutes: step.type === 'prayer' ? estimatedMinutesForPrayer(prayer(step.id)) : .5 }))
+    .filter(item => !['Opening','Closing','Intercessions'].includes(item.step.section) && item.step.type === 'prayer')
+    .sort((a, b) => b.minutes - a.minutes);
+  let guard = 0;
+  while (ruleMinutes(steps) > Math.max(target + 1, target * 1.25) && guard < 20) {
+    const candidate = removable()[0];
+    if (!candidate || steps.length <= 3) break;
+    steps.splice(candidate.index, 1);
+    guard++;
+  }
+  return steps;
+}
+function currentSteps() {
+  const custom = sessionCustomization && sessionCustomization.day === selectedDay && sessionCustomization.office === selectedOffice ? sessionCustomization : null;
+  if (!custom?.minutes) return stepsFromSegments(buildRuleSegments());
+  const previousDuration = ruleDuration;
+  const previousLength = ruleLength;
+  ruleDuration = clamp(Number(custom.minutes) || previousDuration, 3, 45);
+  ruleLength = ruleDuration <= 7 ? 'short' : ruleDuration >= 32 ? 'extended' : 'standard';
+  const base = stepsFromSegments(buildRuleSegments());
+  ruleDuration = previousDuration;
+  ruleLength = previousLength;
+  return applySessionTailoring(base);
+}
+function resetSessionTailoring() {
+  sessionCustomization = null;
+  saveTailoring();
+  clearSavedReader();
+}
 function hasPersonalNames() { return Object.values(personal).some(list => list && list.length); }
 function ruleMinutes(steps) { return Math.max(3, Math.round(steps.reduce((sum, s) => sum + (s.type === 'prayer' ? estimatedMinutesForPrayer(prayer(s.id)) : .5), 0))); }
 function prayerOfDay() { const arr = allPrayers.filter(p => !/holy communion/i.test(p.category)); return arr[dayOfYear() % arr.length]; }
@@ -544,13 +647,14 @@ function guideResultsHTML(query) {
   const suggestions = ['I’m anxious about tomorrow', 'I have an exam', 'Someone I love is sick', 'I need to forgive someone', 'Someone close to me died', 'I’m preparing for Communion'];
   const recent = recentPrayers(4);
   if (!q) return `<div class="guide-prompts">${suggestions.map(item => `<button class="guide-prompt" type="button" data-search-suggestion="${esc(item)}">${esc(item)}</button>`).join('')}</div>${recent.length ? `<section class="search-recent"><p class="micro-label">Recently opened</p><div class="list-panel">${recent.map(prayerRow).join('')}</div></section>` : ''}`;
-  if (!recommendations.length) return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>No close match yet</h2></div></div><div class="quiet-card"><p>Try describing the need more simply, such as peace, illness, study, grief, forgiveness, travel, or repentance.</p><button class="ai-inline-action" type="button" data-ai-guide="${esc(q)}"><span>✦ Ask the Companion</span><em>Reflect on this need with AI</em></button></div></section>`;
-  return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>Three prayers to consider</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('')}</div><button class="ai-inline-action" type="button" data-ai-guide="${esc(q)}"><span>✦ Ask AI to help me choose</span><em>Uses these library recommendations as context</em></button>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>`;
+  if (!recommendations.length) return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Prayer library</p><h2>No close match yet</h2></div></div><div class="quiet-card"><p>Try a simpler word such as peace, illness, study, grief, forgiveness, travel, or repentance.</p></div></section>`;
+  return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Prayer library</p><h2>Closest matches</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('')}</div>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>`;
 }
 function setTodayDefaults() {
-  const now = new Date();
-  selectedDay = dayNames[now.getDay()];
-  selectedOffice = now.getHours() < 15 ? 'Morning' : 'Evening';
+  sessionMoment = window.PrayerSessionTime?.forDate(new Date()) || sessionMoment;
+  selectedDay = sessionMoment.day;
+  selectedOffice = sessionMoment.office;
+  resetSessionTailoring();
   setCustomPreset();
   saveState();
 }
@@ -576,11 +680,12 @@ function shouldAutofocusSearch() {
 }
 
 function render(view = currentView) {
+  if (view === 'companion' || view === 'rule') view = 'home';
   currentView = view;
   document.body.classList.remove('reader-mode', 'ambient-mode');
   document.body.classList.toggle('search-mode', view === 'search');
   document.body.classList.toggle('home-mode', view === 'home');
-  updateDock();
+  document.body.classList.toggle('assistant-open', assistantOpen);
   saveState();
   let html = '';
   if (view === 'home') html = renderHome();
@@ -591,70 +696,55 @@ function render(view = currentView) {
   else if (view === 'settings') html = renderSettings();
   else if (view === 'prayer') html = renderPrayerDetail(activePrayerId);
   else if (view === 'communion') html = renderCommunion(activeCommunionMode);
-  else if (view === 'companion') html = renderCompanion();
   screen.innerHTML = html;
   if (view === 'search') setTimeout(() => { if (shouldAutofocusSearch()) $('search-field')?.focus(); }, 80);
   screen.scrollTop = 0;
+  renderAssistantPanel();
 }
-function updateDock() {
-  document.querySelectorAll('[data-nav]').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === currentView || (currentView === 'category' && btn.dataset.nav === 'library') || (currentView === 'prayer' && btn.dataset.nav === 'library') || (currentView === 'communion' && btn.dataset.nav === 'home')));
+function stepLabel(step) {
+  if (step?.type === 'prayer') return prayer(step.id)?.title || 'Prayer';
+  if (step?.type === 'psalms') return 'Appointed Psalms';
+  return 'Personal Intercessions';
+}
+function companionMessageHTML(message) {
+  const action = message.action ? `<div class="message-action"><span>Session updated</span><strong>${esc(message.action)}</strong></div>` : '';
+  return `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><div>${message.role === 'model' ? markdownHTML(message.text) : `<p>${esc(message.text)}</p>`}</div>${action}</article>`;
+}
+function renderSessionGuide() {
+  const transcript = companionMessages.length
+    ? `<div class="session-conversation" id="session-conversation" aria-live="polite">${companionMessages.map(companionMessageHTML).join('')}${sessionGuideSending ? '<div class="companion-thinking"><i></i><i></i><i></i><span>Shaping your prayer…</span></div>' : ''}</div>`
+    : `<div class="session-guide-welcome"><p>Tell me how you are arriving, what you are carrying, or how much time you have. I can change the prayers—not just suggest them.</p><div class="session-prompts"><button type="button" data-session-prompt="I have 5 minutes. Please make this prayer rule brief and attentive.">I have 5 minutes</button><button type="button" data-session-prompt="I feel anxious and need help settling into prayer.">I feel anxious</button><button type="button" data-session-prompt="I want to pray for someone I love.">For someone I love</button><button type="button" data-session-prompt="Help me slow down and pray without rushing.">Help me slow down</button></div></div>`;
+  return `<section class="session-guide glass" aria-label="Shape this prayer with AI"><header><span class="companion-mark" aria-hidden="true">✦</span><div><p class="micro-label">Shape this prayer</p><h2>How are you arriving?</h2></div>${companionMessages.length ? '<button class="text-button" type="button" data-clear-session-chat>Clear</button>' : ''}</header>${transcript}<form class="session-compose" id="session-guide-form"><label class="sr-only" for="session-guide-input">Tell the Companion what you need</label><textarea id="session-guide-input" rows="1" maxlength="600" placeholder="I feel…  I have…  I want to pray about…" ${sessionGuideSending ? 'disabled' : ''}></textarea><button type="submit" aria-label="Shape my prayer" ${sessionGuideSending ? 'disabled' : ''}><span>Shape my prayer</span><b aria-hidden="true">↑</b></button></form><p class="companion-note">The Companion can adjust this session. It is not clergy or spiritual direction.</p></section>`;
 }
 function renderHome() {
   const segments = buildRuleSegments();
-  const steps = stepsFromSegments(segments);
+  const steps = currentSteps();
   const saved = savedReaderForCurrentRule(steps);
   const hasResume = !!saved;
-  const pday = prayerOfDay();
-  const now = new Date();
-  const actualDay = dayNames[now.getDay()];
-  const dateLine = now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
-  const isToday = selectedDay === actualDay;
-  const progressText = hasResume ? `Continue at step ${saved.index + 1} of ${steps.length}` : `${steps.length} steps • about ${ruleMinutes(steps)} min`;
+  const adjusted = sessionCustomization && sessionCustomization.day === selectedDay && sessionCustomization.office === selectedOffice;
+  const completed = sessionCompletion && sessionCompletion.day === selectedDay && sessionCompletion.office === selectedOffice;
+  const progressText = completed ? 'Prayer completed' : hasResume ? `Continue at ${stepLabel(steps[saved.index])}` : `${steps.length} prayers · about ${ruleMinutes(steps)} minutes`;
+  const preview = steps.slice(0, 4).map((step, index) => `<li><span>${String(index + 1).padStart(2,'0')}</span><strong>${esc(stepLabel(step))}</strong></li>`).join('');
+  const lateNightNote = sessionMoment.lateNight ? '<span class="late-night-note">After midnight · continuing the previous evening</span>' : '';
   return `<div class="view home-page">
-    <header class="page-topline">
-      <div><p class="micro-label">Prayer rule</p><span class="page-greeting">A quiet place to begin</span></div>
-      <button class="home-date-pill ${isToday ? 'is-today' : ''}" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' · Return to today'}</button>
-    </header>
-
-    <section class="home-practice-card" aria-label="Prayer rule">
-      <div class="home-practice-main">
-        <p class="micro-label">${esc(segments.seasonTitle)} · ${esc(segments.cycleTitle)}</p>
-        <div class="home-day-picker" role="group" aria-label="Choose day">
-          ${dayNames.map(day => `<button class="${selectedDay === day ? 'active' : ''}" type="button" data-day-set="${day}" aria-label="${day}" aria-pressed="${selectedDay === day}">${day.slice(0,1)}</button>`).join('')}
-        </div>
-        <h1 class="home-rule-title">${esc(selectedOffice)}<br>Prayer</h1>
-        <p class="home-intention">${esc(segments.theme || 'A quiet beginning for today’s prayer rule.')}</p>
-        <div class="home-office-switch" aria-label="Choose office">
-          <button class="${selectedOffice === 'Morning' ? 'active' : ''}" type="button" data-office-set="Morning">Morning</button>
-          <button class="${selectedOffice === 'Evening' ? 'active' : ''}" type="button" data-office-set="Evening">Evening</button>
-        </div>
+    <header class="session-welcome"><p class="micro-label">${esc(sessionMoment.greeting)}</p><h1>${esc(sessionMoment.dateLabel)}</h1>${lateNightNote}</header>
+    <section class="current-session glass" aria-label="Current prayer session">
+      <div class="session-orb" aria-hidden="true"><span>✦</span></div>
+      <div class="session-copy">
+        <div class="session-kicker"><span>${esc(segments.seasonTitle)}</span><i></i><span>${esc(segments.cycleTitle)}</span></div>
+        <h2>${esc(selectedOffice)}<br>Prayer</h2>
+        <p>${esc(segments.theme || 'A quiet beginning for this prayer rule.')}</p>
+        ${completed ? '<div class="completion-badge"><span>✓ Prayer complete</span><strong>May the peace of this prayer remain with you.</strong></div>' : ''}
+        ${adjusted ? `<div class="tailored-badge"><span>✦ Tailored for this moment</span><strong>${esc(sessionCustomization.summary || sessionCustomization.intention || 'Your session has been adjusted.')}</strong><button type="button" data-reset-session>Restore the usual rule</button></div>` : ''}
       </div>
-      <aside class="home-practice-summary">
-        <div><p class="micro-label">Today’s path</p><strong>${esc(progressText)}</strong></div>
-        ${homeBeads(steps, saved?.index || 0, hasResume)}
-        <button class="primary-button home-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}>${hasResume ? 'Continue prayer' : 'Begin prayer'} <span aria-hidden="true">→</span></button>
-        <div class="home-communion-actions" aria-label="Holy Communion prayers">
-          <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Preparation</em></button>
-          <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving</em></button>
-        </div>
-      </aside>
+      <div class="session-path">
+        <div class="session-path-head"><div><p class="micro-label">Your path</p><strong>${esc(progressText)}</strong></div>${homeBeads(steps, saved?.index || 0, hasResume)}</div>
+        <ol>${preview}</ol>
+        ${steps.length > 4 ? `<details><summary>See all ${steps.length} prayers</summary><ol>${steps.map((step,index) => `<li><span>${String(index+1).padStart(2,'0')}</span><strong>${esc(stepLabel(step))}</strong></li>`).join('')}</ol></details>` : ''}
+        <button class="primary-button session-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}><span>${completed ? 'Pray again' : hasResume ? 'Continue prayer' : 'Begin this prayer'}</span><b aria-hidden="true">→</b></button>
+      </div>
     </section>
-
-    <section class="home-explore" id="home-explore" aria-label="Prayer shortcuts">
-      <div class="section-heading"><div><p class="micro-label">Continue in prayer</p><h2>Choose one path</h2></div><button class="text-button" type="button" data-nav="library">Browse library →</button></div>
-      <nav class="home-command-row" aria-label="Quick actions">
-        <button class="home-command" type="button" data-open-sheet><span>Quick prayer</span><em>Something brief for now</em><b>01</b></button>
-        <button class="home-command" type="button" data-nav="search"><span>Prayer guide</span><em>Find a prayer for your need</em><b>02</b></button>
-        <button class="home-command companion-command" type="button" data-open-companion><span>AI companion</span><em>Reflect, understand, or plan</em><b>03</b></button>
-        <button class="home-command" type="button" data-random-prayer><span>Surprise me</span><em>Open an unexpected prayer</em><b>04</b></button>
-      </nav>
-
-      <button class="home-prayer-card" type="button" data-open-prayer="${esc(pday.id)}">
-        <span><em>Prayer of the day</em><strong>${esc(pday.title)}</strong><small>${esc(pday.category)}</small></span>
-        <b>Read <span aria-hidden="true">→</span></b>
-      </button>
-      ${recentPrayers(3).length ? `<section class="recent-prayers"><div class="section-heading compact"><div><p class="micro-label">Recently opened</p><h2>Return to a prayer</h2></div></div><div class="list-panel">${recentPrayers(3).map(prayerRow).join('')}</div></section>` : ''}
-    </section>
+    ${renderSessionGuide()}
   </div>`;
 }
 function renderCompanion() {
@@ -666,6 +756,22 @@ function renderCompanion() {
   const contextBanner = companionContextLabel ? `<div class="companion-context"><span>Using app context</span><strong>${esc(companionContextLabel)}</strong><button type="button" data-clear-companion-context aria-label="Remove app context">×</button></div>` : '';
   return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">AI prayer tools</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><nav class="companion-feature-tabs" aria-label="Choose an AI tool">${featureTabs}</nav>${contextBanner}<div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="${esc(feature.title)}" ${companionSending ? 'disabled' : ''}>${esc(companionDraft)}</textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">AI can make mistakes. Not clergy, therapy, or emergency support. Avoid sensitive personal details. Chats are not saved by this app.</p></section></div>`;
 }
+function renderAssistantPanel() {
+  if (!assistantPanel || !assistantContent) return;
+  assistantPanel.classList.toggle('open', assistantOpen);
+  assistantPanel.setAttribute('aria-hidden', assistantOpen ? 'false' : 'true');
+  if (!assistantOpen) { assistantContent.innerHTML = ''; return; }
+  const feature = companionFeatures[companionFeature] || companionFeatures.reflect;
+  const welcome = companionMessages.length ? '' : `<div class="assistant-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">${esc(feature.eyebrow)}</p><h2>${esc(feature.title)}</h2><p>${esc(feature.description)}</p><div class="companion-prompts">${feature.prompts.map(([label,prompt]) => `<button type="button" data-companion-prompt="${esc(prompt)}">${esc(label)}</button>`).join('')}</div></div>`;
+  const messages = companionMessages.map(companionMessageHTML).join('');
+  assistantContent.innerHTML = `<header class="assistant-head"><div><p class="micro-label">Alongside your prayer</p><h2>Prayer Companion</h2></div><div>${companionMessages.length ? '<button class="text-button" type="button" data-clear-companion>New</button>' : ''}<button class="round-control" type="button" data-close-assistant aria-label="Close prayer guidance">×</button></div></header>${companionContextLabel ? `<div class="companion-context"><span>Reflecting on</span><strong>${esc(companionContextLabel)}</strong><button type="button" data-clear-companion-context aria-label="Remove app context">×</button></div>` : ''}<div class="assistant-transcript" id="companion-transcript" aria-live="polite">${welcome}${messages}${companionSending ? '<div class="companion-thinking"><i></i><i></i><i></i><span>Listening…</span></div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="${esc(feature.title)}" ${companionSending ? 'disabled' : ''}>${esc(companionDraft)}</textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">AI can make mistakes. Not clergy, therapy, or emergency support. Chats are not saved.</p>`;
+}
+function scrollTranscriptToEnd(id, smooth = false) {
+  requestAnimationFrame(() => {
+    const transcript = $(id);
+    if (transcript) transcript.scrollTo({ top: transcript.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+  });
+}
 function openCompanionFeature(feature, options = {}) {
   companionFeature = companionFeatures[feature] ? feature : 'reflect';
   companionMessages = [];
@@ -673,8 +779,10 @@ function openCompanionFeature(feature, options = {}) {
   companionDraft = String(options.draft || '');
   companionContext = String(options.context || '').slice(0, 5000);
   companionContextLabel = String(options.label || '');
+  companionPlacement = 'panel';
+  assistantOpen = true;
   closeSheet();
-  render('companion');
+  render(currentView);
   requestAnimationFrame(() => $('companion-input')?.focus());
 }
 async function sendCompanionMessage(text) {
@@ -683,20 +791,109 @@ async function sendCompanionMessage(text) {
   companionDraft = '';
   companionMessages.push({ role: 'user', text: message });
   companionSending = true;
-  render('companion');
+  renderAssistantPanel();
+  scrollTranscriptToEnd('companion-transcript');
   try {
     const response = await fetch(COMPANION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: companionMessages.slice(-12), feature: companionFeature, context: companionContext }) });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'The companion is unavailable right now.');
     companionMessages.push({ role: 'model', text: data.text || 'I’m sorry—I could not find words just now. Please try again.' });
   } catch (error) {
-    companionMessages.push({ role: 'model', text: error.message || 'The companion is unavailable right now. Please try again.' });
+    const friendly = error instanceof TypeError ? 'The Companion cannot be reached right now. Please try again in a moment.' : (error.message || 'The Companion is unavailable right now. Please try again.');
+    companionMessages.push({ role: 'model', text: friendly });
   } finally {
     companionSending = false;
-    render('companion');
-    const transcript = $('companion-transcript');
-    if (transcript) transcript.scrollTop = transcript.scrollHeight;
+    renderAssistantPanel();
+    scrollTranscriptToEnd('companion-transcript', true);
   }
+}
+
+function requestedMinutes(message) {
+  const explicit = String(message).match(/\b(3|4|5|6|7|8|9|10|12|15|20|25|30|40|45)\s*(?:minutes?|mins?)\b/i);
+  if (explicit) return Number(explicit[1]);
+  if (/very short|brief|little time|quick/i.test(message)) return 5;
+  if (/longer|more time|unhurried/i.test(message)) return 30;
+  return null;
+}
+function sessionCandidateList(message) {
+  const current = currentSteps().filter(step => step.type === 'prayer').map(step => prayer(step.id)).filter(Boolean);
+  const matched = searchPrayers(message, true).slice(0, 10).map(item => item.p);
+  const quick = (rulesData.quickPrayers || []).map(id => prayer(id)).filter(Boolean);
+  const seen = new Set();
+  return [...current, ...matched, ...quick].filter(item => item && !seen.has(item.id) && seen.add(item.id)).slice(0, 24);
+}
+function parseSessionUpdate(text) {
+  const match = String(text || '').match(/<session_update>\s*([\s\S]*?)\s*<\/session_update>/i);
+  const raw = match?.[1] || String(text || '').match(/^\s*(```json\s*)?(\{[^\n]+\})/i)?.[2];
+  if (!raw) return null;
+  try { return JSON.parse(raw.replace(/```(?:json)?|```/gi, '').trim()); } catch { return null; }
+}
+function cleanSessionResponse(text) {
+  return String(text || '').replace(/<session_update>[\s\S]*?<\/session_update>/gi, '').replace(/^\s*```json\s*\{[^\n]+\}\s*```\s*/i, '').replace(/^\s*\{[^\n]+\}\s*/i, '').trim();
+}
+function fallbackSessionUpdate(message, candidates) {
+  const minutes = requestedMinutes(message) || ruleDuration;
+  const focusIds = searchPrayers(message, true).slice(0, /someone|family|sick|grief|anx/i.test(message) ? 2 : 1).map(item => item.p.id);
+  return { minutes, focus_ids: focusIds, remove_ids: [], move_first_ids: focusIds, summary: `Shaped around what you shared · about ${minutes} minutes` };
+}
+function applySessionUpdate(raw, message, candidates) {
+  const allowed = new Set(candidates.map(item => item.id));
+  const minutes = clamp(Number(raw?.minutes) || requestedMinutes(message) || ruleDuration, 3, 45);
+  const validIds = key => arrayValue(raw?.[key]).filter(id => allowed.has(id) && prayer(id)).slice(0, 8);
+  sessionCustomization = {
+    day: selectedDay,
+    office: selectedOffice,
+    minutes,
+    intention: message.slice(0, 180),
+    summary: String(raw?.summary || `Shaped around what you shared · about ${minutes} minutes`).slice(0, 180),
+    focusIds: validIds('focus_ids'),
+    removeIds: validIds('remove_ids'),
+    moveFirstIds: validIds('move_first_ids'),
+    updatedAt: Date.now()
+  };
+  sessionCompletion = null;
+  saveCompletion();
+  saveTailoring();
+  clearSavedReader();
+  const steps = currentSteps();
+  return `${steps.length} prayers · about ${ruleMinutes(steps)} minutes`;
+}
+function renderHomePreservingScroll(scrollTop, smooth = false) {
+  render('home');
+  requestAnimationFrame(() => {
+    screen.scrollTop = scrollTop;
+    scrollTranscriptToEnd('session-conversation', smooth);
+  });
+}
+async function sendSessionMessage(text) {
+  const message = String(text || '').trim();
+  if (!message || sessionGuideSending) return;
+  companionPlacement = 'home';
+  companionFeature = 'rule';
+  companionMessages.push({ role:'user', text:message });
+  const outerScroll = screen.scrollTop;
+  sessionGuideSending = true;
+  renderHomePreservingScroll(outerScroll);
+  const candidates = sessionCandidateList(message);
+  const currentIds = currentSteps().filter(step => step.type === 'prayer').map(step => step.id);
+  const context = `Current ${selectedDay} ${selectedOffice} session (${ruleMinutes(currentSteps())} min): ${currentIds.join(', ')}\nAvailable prayer IDs and titles:\n${candidates.map(item => `${item.id}: ${item.title}`).join('\n')}`.slice(0, 4800);
+  const planningPrompt = `The person said: "${message.slice(0, 420)}". Act on the prayer session. Return exactly one <session_update> JSON object, then a brief warm Markdown explanation. Schema: {"minutes":number,"focus_ids":["id"],"remove_ids":["id"],"move_first_ids":["id"],"summary":"short phrase"}. Use only IDs from app context. Adjust length, select relevant prayers, remove distractions, and reorder when helpful. Keep opening and closing coherent.`;
+  let responseText = '';
+  let update = null;
+  try {
+    const history = companionMessages.slice(-7, -1);
+    const response = await fetch(COMPANION_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ messages:[...history, { role:'user', text:planningPrompt }], feature:'rule', context }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'The Companion could not respond.');
+    responseText = data.text || '';
+    update = parseSessionUpdate(responseText);
+  } catch (error) {
+    responseText = `I adjusted the session from what you shared. **Begin gently**—attention matters more than finishing quickly.\n\n${error.message ? `_The live guidance was unavailable, so I used the prayer book’s on-device planner._` : ''}`;
+  }
+  const applied = applySessionUpdate(update || fallbackSessionUpdate(message, candidates), message, candidates);
+  companionMessages.push({ role:'model', text:cleanSessionResponse(responseText) || 'I have shaped the prayer around what you shared. Begin gently, without rushing.', action:applied });
+  sessionGuideSending = false;
+  renderHomePreservingScroll(outerScroll, true);
 }
 function renderRule() {
   const seg = buildRuleSegments();
@@ -749,10 +946,10 @@ function prayerRow(p) {
   return `<button class="prayer-row" type="button" data-open-prayer="${esc(p.id)}"><span class="row-glyph">✠</span><span><span class="prayer-row-title">${esc(p.title)}</span><span class="prayer-row-sub">${esc(p.category)}</span></span></button>`;
 }
 function renderSearch() {
-  return `<div class="view prayer-guide"><section class="prayer-guide-panel" aria-label="Prayer guide">
-    <p class="micro-label">Private prayer guide</p>
-    <h1 class="page-title">What is on your heart?</h1>
-    <p class="subtitle">Describe what you are facing. The guide recommends existing prayers from your library; nothing is generated or sent anywhere.</p>
+  return `<div class="view prayer-guide"><section class="prayer-guide-panel" aria-label="Find a prayer">
+    <p class="micro-label">Prayer library</p>
+    <h1 class="page-title">Find a prayer.</h1>
+    <p class="subtitle">Search the prayer book by a word, need, or occasion. This search stays entirely on your device.</p>
     <label class="search-box glass prayer-guide-search"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg><input id="search-field" value="${esc(searchQuery)}" placeholder="For example: I’m worried about my exam…" autocomplete="off" inputmode="search" enterkeyhint="search" autocapitalize="sentences"></label>
     <div id="guide-results">${guideResultsHTML(searchQuery)}</div>
   </section></div>`;
@@ -795,8 +992,8 @@ function renderSettings() {
   const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
   return `<div class="view settings-clean">
     <p class="micro-label">Settings</p>
-    <h1 class="page-title">Settings</h1>
-    <p class="subtitle">Keep the prayer rule simple. Day, time of day, and Communion prayers are chosen directly from Home.</p>
+    <h1 class="page-title">A quieter place.</h1>
+    <p class="subtitle">Set the usual shape of prayer and the reading atmosphere. The Companion can still adapt any individual session.</p>
     <div class="settings-sections">
       <section class="quiet-card settings-section">
         <div class="settings-section-head"><div><p class="micro-label">Daily rule</p><h3>Prayer selection</h3></div></div>
@@ -821,6 +1018,9 @@ function renderSettings() {
           <div class="segment compact-segment"><button type="button" data-theme-set="dark">Dark</button><button type="button" data-theme-set="light">Light</button></div>
         </div>
         <div class="settings-sliders">
+          ${range('clarity','Glass clarity',8,42,appearance.clarity)}
+          ${range('frost','Glass softness',8,42,appearance.frost)}
+          ${range('reflection','Light reflection',10,70,appearance.reflection)}
           ${range('scale','Text size',86,138,Math.round(appearance.scale*100))}
           ${range('leading','Line spacing',140,200,Math.round(appearance.leading*100))}
         </div>
@@ -845,7 +1045,7 @@ function renderQuickSheet() {
 function openSheet() { quickSheet.classList.add('open'); quickSheet.setAttribute('aria-hidden', 'false'); }
 function closeSheet() { quickSheet.classList.remove('open'); quickSheet.setAttribute('aria-hidden', 'true'); }
 
-function startRule(index = 0, position = 0) { const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)), position:clamp(Number(position)||0,0,1) }; openReader(); }
+function startRule(index = 0, position = 0) { sessionCompletion = null; saveCompletion(); const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)), position:clamp(Number(position)||0,0,1) }; openReader(); }
 function startSinglePrayer(id) {
   rememberPrayer(id);
   reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0, position: Number(readingPositions[id] || 0) };
@@ -944,6 +1144,11 @@ function completeRule() {
   if (reader?.kind === 'rule') {
     recordPrayerHistory(reader.steps);
     clearSavedReader();
+    sessionCompletion = { day:selectedDay, office:selectedOffice, completedAt:Date.now() };
+    saveCompletion();
+    sessionCustomization = null;
+    saveTailoring();
+    companionMessages = [];
     reader = null;
     document.body.classList.remove('reader-mode', 'ambient-mode');
     releaseWakeLock();
@@ -1020,12 +1225,17 @@ screen.addEventListener('change', (e) => {
 document.addEventListener('click', async (e) => {
   const nav = e.target.closest('[data-nav]');
   if (nav) { closeSheet(); activePrayerId = null; activeCategory = null; if (nav.dataset.nav === 'search') searchQuery = ''; render(nav.dataset.nav); return; }
-  if (e.target.closest('[data-open-sheet]')) { openSheet(); return; }
-  if (e.target.closest('[data-open-companion]')) { closeSheet(); render('companion'); return; }
-  if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; companionDraft = ''; render('companion'); return; }
+  if (e.target.closest('[data-open-sheet], [data-open-menu]')) { openSheet(); return; }
+  if (e.target.closest('[data-close-assistant]')) { assistantOpen = false; renderAssistantPanel(); document.body.classList.remove('assistant-open'); return; }
+  if (e.target.closest('[data-open-companion]')) { closeSheet(); companionMessages = []; companionFeature = 'reflect'; companionContext = ''; companionContextLabel = ''; assistantOpen = true; renderAssistantPanel(); return; }
+  if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; companionDraft = ''; renderAssistantPanel(); return; }
+  if (e.target.closest('[data-clear-session-chat]')) { companionMessages = []; sessionGuideSending = false; renderHomePreservingScroll(screen.scrollTop); return; }
+  if (e.target.closest('[data-reset-session]')) { resetSessionTailoring(); companionMessages = []; showToast('Usual prayer rule restored'); render('home'); return; }
+  const sessionPrompt = e.target.closest('[data-session-prompt]');
+  if (sessionPrompt) { sendSessionMessage(sessionPrompt.dataset.sessionPrompt); return; }
   const companionFeatureButton = e.target.closest('[data-companion-feature]');
   if (companionFeatureButton) { openCompanionFeature(companionFeatureButton.dataset.companionFeature); return; }
-  if (e.target.closest('[data-clear-companion-context]')) { companionContext = ''; companionContextLabel = ''; render('companion'); return; }
+  if (e.target.closest('[data-clear-companion-context]')) { companionContext = ''; companionContextLabel = ''; renderAssistantPanel(); return; }
   const companionPrompt = e.target.closest('[data-companion-prompt]');
   if (companionPrompt) { sendCompanionMessage(companionPrompt.dataset.companionPrompt); return; }
   const aiExplain = e.target.closest('[data-ai-explain]');
@@ -1069,7 +1279,7 @@ document.addEventListener('click', async (e) => {
   const day = e.target.closest('[data-day-set]');
   if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); saveState(); render('home'); return; }
   const communionPage = e.target.closest('[data-open-communion]');
-  if (communionPage) { activeCommunionMode = communionPage.dataset.openCommunion; render('communion'); return; }
+  if (communionPage) { closeSheet(); activeCommunionMode = communionPage.dataset.openCommunion; render('communion'); return; }
   const communion = e.target.closest('[data-start-communion]');
   if (communion) { startCommunionRule(communion.dataset.startCommunion, communion.dataset.communionVariant || 'full'); return; }
   const preset = e.target.closest('[data-rule-preset]');
@@ -1098,6 +1308,11 @@ document.addEventListener('click', async (e) => {
 });
 
 document.addEventListener('submit', (e) => {
+  if (e.target.id === 'session-guide-form') {
+    e.preventDefault();
+    sendSessionMessage($('session-guide-input')?.value);
+    return;
+  }
   if (e.target.id !== 'companion-form') return;
   e.preventDefault();
   sendCompanionMessage($('companion-input')?.value);
