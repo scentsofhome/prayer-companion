@@ -1,11 +1,11 @@
-const CACHE_NAME = 'orthodox-prayer-book-v34-companion-tab';
+const CACHE_NAME = 'orthodox-prayer-book-v35-ai-suite';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=19.5.0',
-  './src/app.js?v=19.5.0',
-  './src/extra-prayers.js?v=19.5.0',
+  './src/styles.css?v=20.0.0',
+  './src/app.js?v=20.0.0',
+  './src/extra-prayers.js?v=20.0.0',
   './data/prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',
