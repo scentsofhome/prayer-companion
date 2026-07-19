@@ -525,7 +525,7 @@ function applySessionTailoring(baseSteps) {
   const removed = new Set(arrayValue(custom.removeIds));
   let steps = baseSteps.filter(step => step.type !== 'prayer' || ['Opening','Closing'].includes(step.section) || !removed.has(step.id));
   const existing = new Set(steps.filter(step => step.type === 'prayer').map(step => step.id));
-  const additions = arrayValue(custom.focusIds).filter(id => prayer(id) && !removed.has(id));
+  const additions = uniqueIds([...arrayValue(custom.focusIds), ...arrayValue(custom.moveFirstIds)]).filter(id => prayer(id) && !removed.has(id));
   const closingIndex = steps.findIndex(step => step.section === 'Closing');
   const insertAt = closingIndex < 0 ? steps.length : closingIndex;
   const addedSteps = additions.filter(id => !existing.has(id)).map(id => ({ type:'prayer', id, section:'Tailored for this session' }));
