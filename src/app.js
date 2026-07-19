@@ -1,4 +1,4 @@
-const VERSION = 'v19.3.1-smooth-release';
+const VERSION = 'v19.5.0-companion-tab';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -191,7 +191,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.3.1').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=19.5.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -614,8 +614,8 @@ function renderHome() {
   </div>`;
 }
 function renderCompanion() {
-  const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : `<div class="companion-welcome"><p class="micro-label">A quiet conversation</p><h1 class="page-title">Prayer Companion</h1><p>Share what is on your heart. I can listen, offer a gentle next step, or help you find words for prayer.</p><div class="companion-prompts"><button type="button" data-companion-prompt="I am feeling anxious. Could you help me pray?">I’m feeling anxious</button><button type="button" data-companion-prompt="Help me find words of gratitude today.">Give thanks</button><button type="button" data-companion-prompt="I need a short prayer for someone I love.">Pray for someone</button></div></div>`;
-  return `<div class="view companion-view"><button class="secondary-button" type="button" data-nav="home">← Home</button><section class="companion-card"><header><p class="micro-label">Private reflection</p><h1 class="page-title">Prayer Companion</h1><p class="subtitle">A gentle aid for reflection and prayer—not clergy, therapy, or emergency support.</p></header><div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" placeholder="What is on your heart?" ${companionSending ? 'disabled' : ''}></textarea><button class="primary-button" type="submit" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">Avoid sharing names, addresses, or other sensitive details. Conversations are not saved by this app.</p></section></div>`;
+  const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : `<div class="companion-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">A quiet conversation</p><h2>What is on your heart?</h2><p>Share as much or as little as you wish. I can listen, offer a gentle next step, or help you find words for prayer.</p><div class="companion-prompts"><button type="button" data-companion-prompt="I am feeling anxious. Could you help me pray?">I’m feeling anxious</button><button type="button" data-companion-prompt="Help me find words of gratitude today.">Give thanks</button><button type="button" data-companion-prompt="I need a short prayer for someone I love.">Pray for someone</button></div></div>`;
+  return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">Private reflection</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="What is on your heart?" ${companionSending ? 'disabled' : ''}></textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">Not clergy, therapy, or emergency support. Avoid sensitive personal details. Conversations are not saved by this app.</p></section></div>`;
 }
 async function sendCompanionMessage(text) {
   const message = String(text || '').trim();
@@ -961,6 +961,7 @@ document.addEventListener('click', async (e) => {
   if (nav) { closeSheet(); activePrayerId = null; activeCategory = null; if (nav.dataset.nav === 'search') searchQuery = ''; render(nav.dataset.nav); return; }
   if (e.target.closest('[data-open-sheet]')) { openSheet(); return; }
   if (e.target.closest('[data-open-companion]')) { closeSheet(); render('companion'); return; }
+  if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; render('companion'); return; }
   const companionPrompt = e.target.closest('[data-companion-prompt]');
   if (companionPrompt) { sendCompanionMessage(companionPrompt.dataset.companionPrompt); return; }
   if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
