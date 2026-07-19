@@ -1,11 +1,12 @@
-const CACHE_NAME = 'orthodox-prayer-book-v36-intentional-ui';
+const CACHE_NAME = 'orthodox-prayer-book-v37-guided-glass';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=21.0.0',
-  './src/app.js?v=21.0.0',
-  './src/extra-prayers.js?v=21.0.0',
+  './src/styles.css?v=22.0.0',
+  './src/session-time.js?v=22.0.0',
+  './src/app.js?v=22.0.0',
+  './src/extra-prayers.js?v=22.0.0',
   './data/prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',
@@ -57,7 +58,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const freshAsset = ['/src/app.js', '/src/styles.css', '/src/extra-prayers.js', '/data/prayers.json', '/data/prayer-rules.json']
+  const freshAsset = ['/src/app.js', '/src/session-time.js', '/src/styles.css', '/src/extra-prayers.js', '/data/prayers.json', '/data/prayer-rules.json']
     .some(path => url.pathname.endsWith(path));
   if (freshAsset) {
     event.respondWith(fetch(request).then(response => {
