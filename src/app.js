@@ -67,6 +67,7 @@ const dock = $('bottom-dock');
 const quickSheet = $('quick-sheet');
 const quickList = $('quick-list');
 const toast = $('toast');
+const COMPANION_ENDPOINT = 'https://prayer-companion-ai.scentsofhome4.workers.dev';
 
 let prayersData = null;
 let rulesData = null;
@@ -81,6 +82,8 @@ let reader = null;
 let idleTimer = null;
 let touchStartX = 0;
 let touchStartY = 0;
+let companionMessages = [];
+let companionSending = false;
 
 let state = storedJSON('state', {}) || {};
 let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
@@ -538,6 +541,7 @@ function render(view = currentView) {
   else if (view === 'settings') html = renderSettings();
   else if (view === 'prayer') html = renderPrayerDetail(activePrayerId);
   else if (view === 'communion') html = renderCommunion(activeCommunionMode);
+  else if (view === 'companion') html = renderCompanion();
   screen.innerHTML = html;
   if (view === 'search') setTimeout(() => { if (shouldAutofocusSearch()) $('search-field')?.focus(); }, 80);
   screen.scrollTop = 0;
@@ -598,6 +602,7 @@ function renderHome() {
         <button class="home-command" type="button" data-open-sheet><span>Quick Prayers</span><em>Short prayers for now</em></button>
         <button class="home-command" type="button" data-nav="search"><span>What should I pray?</span><em>Describe what is on your heart</em></button>
         <button class="home-command" type="button" data-random-prayer><span>Random Prayer</span><em>Open something unexpected</em></button>
+        <button class="home-command companion-command" type="button" data-open-companion><span>Prayer Companion</span><em>A gentle place to reflect</em></button>
       </nav>
 
       <button class="home-prayer-card" type="button" data-open-prayer="${esc(pday.id)}">
@@ -607,6 +612,30 @@ function renderHome() {
       ${recentPrayers(3).length ? `<section class="recent-prayers"><p class="micro-label">Recently opened</p><div class="list-panel">${recentPrayers(3).map(prayerRow).join('')}</div></section>` : ''}
     </section>
   </div>`;
+}
+function renderCompanion() {
+  const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : `<div class="companion-welcome"><p class="micro-label">A quiet conversation</p><h1 class="page-title">Prayer Companion</h1><p>Share what is on your heart. I can listen, offer a gentle next step, or help you find words for prayer.</p><div class="companion-prompts"><button type="button" data-companion-prompt="I am feeling anxious. Could you help me pray?">I’m feeling anxious</button><button type="button" data-companion-prompt="Help me find words of gratitude today.">Give thanks</button><button type="button" data-companion-prompt="I need a short prayer for someone I love.">Pray for someone</button></div></div>`;
+  return `<div class="view companion-view"><button class="secondary-button" type="button" data-nav="home">← Home</button><section class="companion-card"><header><p class="micro-label">Private reflection</p><h1 class="page-title">Prayer Companion</h1><p class="subtitle">A gentle aid for reflection and prayer—not clergy, therapy, or emergency support.</p></header><div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" placeholder="What is on your heart?" ${companionSending ? 'disabled' : ''}></textarea><button class="primary-button" type="submit" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">Avoid sharing names, addresses, or other sensitive details. Conversations are not saved by this app.</p></section></div>`;
+}
+async function sendCompanionMessage(text) {
+  const message = String(text || '').trim();
+  if (!message || companionSending) return;
+  companionMessages.push({ role: 'user', text: message });
+  companionSending = true;
+  render('companion');
+  try {
+    const response = await fetch(COMPANION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: companionMessages.slice(-12) }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'The companion is unavailable right now.');
+    companionMessages.push({ role: 'model', text: data.text || 'I’m sorry—I could not find words just now. Please try again.' });
+  } catch (error) {
+    companionMessages.push({ role: 'model', text: error.message || 'The companion is unavailable right now. Please try again.' });
+  } finally {
+    companionSending = false;
+    render('companion');
+    const transcript = $('companion-transcript');
+    if (transcript) transcript.scrollTop = transcript.scrollHeight;
+  }
 }
 function renderRule() {
   const seg = buildRuleSegments();
@@ -931,6 +960,9 @@ document.addEventListener('click', async (e) => {
   const nav = e.target.closest('[data-nav]');
   if (nav) { closeSheet(); activePrayerId = null; activeCategory = null; if (nav.dataset.nav === 'search') searchQuery = ''; render(nav.dataset.nav); return; }
   if (e.target.closest('[data-open-sheet]')) { openSheet(); return; }
+  if (e.target.closest('[data-open-companion]')) { closeSheet(); render('companion'); return; }
+  const companionPrompt = e.target.closest('[data-companion-prompt]');
+  if (companionPrompt) { sendCompanionMessage(companionPrompt.dataset.companionPrompt); return; }
   if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
   const cat = e.target.closest('[data-category]');
   if (cat) { activeCategory = cat.dataset.category; render('category'); return; }
@@ -972,6 +1004,12 @@ document.addEventListener('click', async (e) => {
   if (addName) { const key = addName.dataset.addName; const input = screen.querySelector(`[data-name-input="${key}"]`); const value = input?.value.trim(); if (value) { const scrollTop=screen.scrollTop; personal[key] = [...(personal[key] || []), value]; savePersonal(); refreshSettingsAt(scrollTop); } return; }
   const removeName = e.target.closest('[data-remove-name]');
   if (removeName) { const key = removeName.dataset.removeName; const idx = Number(removeName.dataset.nameIndex); personal[key].splice(idx,1); savePersonal(); refreshSettingsAt(screen.scrollTop); return; }
+});
+
+document.addEventListener('submit', (e) => {
+  if (e.target.id !== 'companion-form') return;
+  e.preventDefault();
+  sendCompanionMessage($('companion-input')?.value);
 });
 
 ['mousemove','touchstart','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
