@@ -1,4 +1,4 @@
-const VERSION = 'v20.0.0-ai-suite';
+const VERSION = 'v21.0.0-intentional-ui';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -241,7 +241,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=20.0.0').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=21.0.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -610,56 +610,50 @@ function renderHome() {
   const dateLine = now.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
   const isToday = selectedDay === actualDay;
   const progressText = hasResume ? `Continue at step ${saved.index + 1} of ${steps.length}` : `${steps.length} steps • about ${ruleMinutes(steps)} min`;
-  return `<div class="view home-v17 home-v18">
-    <section class="home-main-stage" aria-label="Prayer rule">
-      <header class="home-topbar home-floating-topbar">
-        <div class="app-wordmark"><span>Prayer Rule</span></div>
-        <button class="home-date-pill ${isToday ? 'is-today' : ''}" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' • Today'}</button>
-      </header>
+  return `<div class="view home-page">
+    <header class="page-topline">
+      <div><p class="micro-label">Prayer rule</p><span class="page-greeting">A quiet place to begin</span></div>
+      <button class="home-date-pill ${isToday ? 'is-today' : ''}" type="button" data-use-today>${esc(dateLine)}${isToday ? '' : ' · Return to today'}</button>
+    </header>
 
-      <div class="home-center-window">
-        <section class="home-focus-card home-prayer-window">
-          <p class="micro-label">${esc(segments.seasonTitle)} • ${esc(segments.cycleTitle)}</p>
-          <div class="home-day-picker" role="group" aria-label="Choose day">
-            ${dayNames.map(day => `<button class="${selectedDay === day ? 'active' : ''}" type="button" data-day-set="${day}" aria-label="${day}" aria-pressed="${selectedDay === day}">${day.slice(0,3)}</button>`).join('')}
-          </div>
-          <h1 class="home-rule-title">${esc(selectedOffice)} Prayer</h1>
-          <p class="home-intention">${esc(segments.theme || 'A quiet beginning for today’s prayer rule.')}</p>
-          <div class="home-office-switch" aria-label="Choose office">
-            <button class="${selectedOffice === 'Morning' ? 'active' : ''}" type="button" data-office-set="Morning">Morning</button>
-            <button class="${selectedOffice === 'Evening' ? 'active' : ''}" type="button" data-office-set="Evening">Evening</button>
-          </div>
-          <p class="home-rule-meta">${esc(progressText)}</p>
-          <div class="home-action-row">
-            <button class="primary-button home-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}>${hasResume ? 'Resume Prayer' : 'Pray'}</button>
-          </div>
-          <div class="home-communion-actions" aria-label="Holy Communion prayers">
-            <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Choose preparation</em></button>
-            <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Choose thanksgiving</em></button>
-          </div>
-        </section>
+    <section class="home-practice-card" aria-label="Prayer rule">
+      <div class="home-practice-main">
+        <p class="micro-label">${esc(segments.seasonTitle)} · ${esc(segments.cycleTitle)}</p>
+        <div class="home-day-picker" role="group" aria-label="Choose day">
+          ${dayNames.map(day => `<button class="${selectedDay === day ? 'active' : ''}" type="button" data-day-set="${day}" aria-label="${day}" aria-pressed="${selectedDay === day}">${day.slice(0,1)}</button>`).join('')}
+        </div>
+        <h1 class="home-rule-title">${esc(selectedOffice)}<br>Prayer</h1>
+        <p class="home-intention">${esc(segments.theme || 'A quiet beginning for today’s prayer rule.')}</p>
+        <div class="home-office-switch" aria-label="Choose office">
+          <button class="${selectedOffice === 'Morning' ? 'active' : ''}" type="button" data-office-set="Morning">Morning</button>
+          <button class="${selectedOffice === 'Evening' ? 'active' : ''}" type="button" data-office-set="Evening">Evening</button>
+        </div>
       </div>
-
-      <button class="home-scroll-cue" type="button" data-scroll-explore aria-label="Scroll to prayer shortcuts">Explore ↓</button>
+      <aside class="home-practice-summary">
+        <div><p class="micro-label">Today’s path</p><strong>${esc(progressText)}</strong></div>
+        ${homeBeads(steps, saved?.index || 0, hasResume)}
+        <button class="primary-button home-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}>${hasResume ? 'Continue prayer' : 'Begin prayer'} <span aria-hidden="true">→</span></button>
+        <div class="home-communion-actions" aria-label="Holy Communion prayers">
+          <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Preparation</em></button>
+          <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving</em></button>
+        </div>
+      </aside>
     </section>
 
     <section class="home-explore" id="home-explore" aria-label="Prayer shortcuts">
-      <div class="home-section-heading">
-        <p class="micro-label">Prayer library</p>
-        <h2>Open another prayer</h2>
-      </div>
+      <div class="section-heading"><div><p class="micro-label">Continue in prayer</p><h2>Choose one path</h2></div><button class="text-button" type="button" data-nav="library">Browse library →</button></div>
       <nav class="home-command-row" aria-label="Quick actions">
-        <button class="home-command" type="button" data-open-sheet><span>Quick Prayers</span><em>Short prayers for now</em></button>
-        <button class="home-command" type="button" data-nav="search"><span>What should I pray?</span><em>Describe what is on your heart</em></button>
-        <button class="home-command" type="button" data-random-prayer><span>Random Prayer</span><em>Open something unexpected</em></button>
-        <button class="home-command companion-command" type="button" data-open-companion><span>Prayer Companion</span><em>A gentle place to reflect</em></button>
+        <button class="home-command" type="button" data-open-sheet><span>Quick prayer</span><em>Something brief for now</em><b>01</b></button>
+        <button class="home-command" type="button" data-nav="search"><span>Prayer guide</span><em>Find a prayer for your need</em><b>02</b></button>
+        <button class="home-command companion-command" type="button" data-open-companion><span>AI companion</span><em>Reflect, understand, or plan</em><b>03</b></button>
+        <button class="home-command" type="button" data-random-prayer><span>Surprise me</span><em>Open an unexpected prayer</em><b>04</b></button>
       </nav>
 
       <button class="home-prayer-card" type="button" data-open-prayer="${esc(pday.id)}">
-        <span><em>Prayer of the Day</em><strong>${esc(pday.title)}</strong><small>${esc(pday.category)}</small></span>
-        <b>Read</b>
+        <span><em>Prayer of the day</em><strong>${esc(pday.title)}</strong><small>${esc(pday.category)}</small></span>
+        <b>Read <span aria-hidden="true">→</span></b>
       </button>
-      ${recentPrayers(3).length ? `<section class="recent-prayers"><p class="micro-label">Recently opened</p><div class="list-panel">${recentPrayers(3).map(prayerRow).join('')}</div></section>` : ''}
+      ${recentPrayers(3).length ? `<section class="recent-prayers"><div class="section-heading compact"><div><p class="micro-label">Recently opened</p><h2>Return to a prayer</h2></div></div><div class="list-panel">${recentPrayers(3).map(prayerRow).join('')}</div></section>` : ''}
     </section>
   </div>`;
 }
@@ -716,12 +710,12 @@ function renderRule() {
     if (s.type === 'psalms') return row('Appointed Psalms', s.psalms.join(' • '));
     return row('Personal Intercessions', 'Names you have saved locally');
   }).join('');
-  return `<div class="view">
+  return `<div class="view rule-view">
     <div class="rule-header">
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
       <div class="top-actions"><button class="secondary-button" type="button" data-ai-rule>✦ AI guide</button><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
-    <div class="quiet-card"><div class="stat-row">${presetPill}${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
+    <div class="rule-summary"><div class="stat-row">${presetPill}${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div><span>Prepared from your settings and the day’s theme.</span></div>
     <div class="rule-path">${stepRows}</div>
   </div>`;
 }
@@ -730,7 +724,7 @@ function renderLibrary() {
   const counts = new Map();
   allPrayers.forEach(p => counts.set(p.category, (counts.get(p.category) || 0) + 1));
   const shelves = categories.filter(c => counts.has(c.title)).map(c => `<button class="shelf" type="button" data-category="${esc(c.title)}"><small>${counts.get(c.title)} prayers</small><div><h3>${esc(c.title)}</h3><p>${categoryDescription(c.title)}</p></div></button>`).join('');
-  return `<div class="view"><p class="micro-label">Library</p><h1 class="page-title">Open a book</h1><p class="subtitle">The prayers are organized like shelves. Choose a section, then open a prayer.</p><div class="shelf-grid">${shelves}</div><div class="quiet-card" style="margin-top:18px"><p class="micro-label">Favorites</p><h3>${favorites.size ? `${favorites.size} saved prayers` : 'No favorites yet'}</h3><p>${favorites.size ? 'Open Search or a shelf and star prayers to keep them close.' : 'Tap the star on any prayer to save it here.'}</p><div class="list-panel">${renderFavoriteRows()}</div></div></div>`;
+  return `<div class="view library-view"><header class="page-header"><p class="micro-label">Prayer library</p><h1 class="page-title">Find the words<br>you need.</h1><p class="subtitle">Traditional prayers, organized by the moment and purpose they serve.</p></header><div class="shelf-grid">${shelves}</div><section class="favorites-section"><div class="section-heading"><div><p class="micro-label">Favorites</p><h2>${favorites.size ? `${favorites.size} saved prayers` : 'Keep prayers close'}</h2></div></div><p>${favorites.size ? 'Your saved prayers, ready when you need them.' : 'Favorite any prayer and it will appear here.'}</p><div class="list-panel">${renderFavoriteRows()}</div></section></div>`;
 }
 function categoryDescription(cat) {
   if (/Rule/.test(cat)) return 'Opening prayers, Creed, closing prayers, and core rule texts.';
@@ -749,7 +743,7 @@ function renderFavoriteRows() {
 }
 function renderCategory(cat) {
   const list = allPrayers.filter(p => p.category === cat);
-  return `<div class="view"><button class="secondary-button" type="button" data-nav="library">← Library</button><div style="height:22px"></div><p class="micro-label">${esc(list.length)} prayers</p><h1 class="page-title">${esc(cat || 'Prayers')}</h1><div class="list-panel">${list.map(prayerRow).join('')}</div></div>`;
+  return `<div class="view category-view"><button class="text-button back-button" type="button" data-nav="library">← Library</button><header class="page-header"><p class="micro-label">${esc(list.length)} prayers</p><h1 class="page-title">${esc(cat || 'Prayers')}</h1></header><div class="list-panel">${list.map(prayerRow).join('')}</div></div>`;
 }
 function prayerRow(p) {
   return `<button class="prayer-row" type="button" data-open-prayer="${esc(p.id)}"><span class="row-glyph">✠</span><span><span class="prayer-row-title">${esc(p.title)}</span><span class="prayer-row-sub">${esc(p.category)}</span></span></button>`;
@@ -779,7 +773,7 @@ function renderPrayerDetail(id) {
   const position = Number(readingPositions[p.id] || 0);
   const action = position > .04 ? 'Resume' : 'Read';
   const provenance = p.source === 'Jordanville Prayer Book' ? 'OCR-cleaned import; source comparison is still recommended for critical use.' : 'Curated app library text.';
-  return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span></div><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action}</button></div><section class="prayer-ai-tools"><div><p class="micro-label">AI prayer tools</p><h3>Go deeper with this prayer</h3></div><div><button type="button" data-ai-explain="${esc(p.id)}"><span>✦ Explain</span><em>Words, images, and themes</em></button><button type="button" data-ai-reflect-prayer="${esc(p.id)}"><span>✦ Reflect</span><em>Bring it into today</em></button></div></section><p class="prayer-provenance">${esc(provenance)}</p><div class="reader-text prayer-detail-text">${prayerTextHTML(p)}</div></div>`;
+  return `<div class="view prayer-detail-view"><button class="text-button back-button" type="button" data-back>← Back</button><header class="prayer-detail-header"><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span></div></header><div class="prayer-detail-actions"><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action} prayer <span aria-hidden="true">→</span></button><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button></div><div class="prayer-detail-layout"><aside><section class="prayer-ai-tools"><div><p class="micro-label">AI prayer tools</p><h3>Go deeper</h3></div><div><button type="button" data-ai-explain="${esc(p.id)}"><span>✦ Explain</span><em>Words, images, and themes</em></button><button type="button" data-ai-reflect-prayer="${esc(p.id)}"><span>✦ Reflect</span><em>Bring it into today</em></button></div></section><p class="prayer-provenance">${esc(provenance)}</p></aside><article class="reader-text prayer-detail-text">${prayerTextHTML(p)}</article></div></div>`;
 }
 function communionVariantIds(mode, variant) {
   const ids = (rulesData?.communionModes?.[mode]?.ids || []).filter(id => prayer(id));
