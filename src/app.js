@@ -1,4 +1,4 @@
-const VERSION = 'v19.5.0-companion-tab';
+const VERSION = 'v20.0.0-ai-suite';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -68,6 +68,52 @@ const quickSheet = $('quick-sheet');
 const quickList = $('quick-list');
 const toast = $('toast');
 const COMPANION_ENDPOINT = 'https://prayer-companion-ai.scentsofhome4.workers.dev';
+const companionFeatures = {
+  reflect: {
+    label: 'Reflect',
+    eyebrow: 'Gentle reflection',
+    title: 'What is on your heart?',
+    description: 'Talk through what you are carrying and receive one gentle next step.',
+    prompts: [
+      ['I’m feeling anxious', 'I am feeling anxious. Help me slow down, reflect, and take one small step toward prayer.'],
+      ['I feel spiritually dry', 'Prayer feels dry and difficult today. Help me approach it gently without shame.'],
+      ['End-of-day reflection', 'Guide me through a short, gentle end-of-day reflection with gratitude, honesty, and hope.']
+    ]
+  },
+  prayer: {
+    label: 'Find words',
+    eyebrow: 'Original prayer help',
+    title: 'Find words for prayer',
+    description: 'Receive a short original prayer for this moment—not a replacement for the Church’s prayers.',
+    prompts: [
+      ['Give thanks', 'Help me find words for a brief prayer of gratitude today.'],
+      ['Pray for someone', 'Help me write a short prayer for someone I love, without asking for private details.'],
+      ['Before a difficult day', 'Offer a short original prayer for courage, humility, and peace before a difficult day.']
+    ]
+  },
+  rule: {
+    label: 'Plan',
+    eyebrow: 'Prayer-rule guide',
+    title: 'Prepare a prayer rule',
+    description: 'Get practical guidance for beginning, shortening, or returning to a daily prayer rule.',
+    prompts: [
+      ['Begin a daily rule', 'Help me begin a simple, sustainable Orthodox prayer rule. Keep the advice practical and encourage guidance from my priest.'],
+      ['Return after a lapse', 'I have fallen out of my prayer routine. Help me return gently with a small next step.'],
+      ['Pray with little time', 'I have only a few minutes. Help me approach a short prayer rule attentively rather than rushing.']
+    ]
+  },
+  explain: {
+    label: 'Understand',
+    eyebrow: 'Prayer explanation',
+    title: 'Understand a prayer',
+    description: 'Explore difficult words, images, and themes while keeping the prayer itself at the center.',
+    prompts: [
+      ['Why repeat prayers?', 'Explain gently why repeated prayers can be meaningful in Orthodox Christian practice.'],
+      ['What is watchfulness?', 'Explain the Orthodox prayer term “watchfulness” in plain language, without claiming spiritual authority.'],
+      ['How should I read slowly?', 'Give me a simple way to read a traditional prayer slowly and attentively.']
+    ]
+  }
+};
 
 let prayersData = null;
 let rulesData = null;
@@ -84,6 +130,10 @@ let touchStartX = 0;
 let touchStartY = 0;
 let companionMessages = [];
 let companionSending = false;
+let companionFeature = 'reflect';
+let companionDraft = '';
+let companionContext = '';
+let companionContextLabel = '';
 
 let state = storedJSON('state', {}) || {};
 let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
@@ -191,7 +241,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded.v19.3', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=19.5.0').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=20.0.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -494,8 +544,8 @@ function guideResultsHTML(query) {
   const suggestions = ['I’m anxious about tomorrow', 'I have an exam', 'Someone I love is sick', 'I need to forgive someone', 'Someone close to me died', 'I’m preparing for Communion'];
   const recent = recentPrayers(4);
   if (!q) return `<div class="guide-prompts">${suggestions.map(item => `<button class="guide-prompt" type="button" data-search-suggestion="${esc(item)}">${esc(item)}</button>`).join('')}</div>${recent.length ? `<section class="search-recent"><p class="micro-label">Recently opened</p><div class="list-panel">${recent.map(prayerRow).join('')}</div></section>` : ''}`;
-  if (!recommendations.length) return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>No close match yet</h2></div></div><div class="quiet-card"><p>Try describing the need more simply, such as peace, illness, study, grief, forgiveness, travel, or repentance.</p></div></section>`;
-  return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>Three prayers to consider</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('')}</div>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>`;
+  if (!recommendations.length) return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>No close match yet</h2></div></div><div class="quiet-card"><p>Try describing the need more simply, such as peace, illness, study, grief, forgiveness, travel, or repentance.</p><button class="ai-inline-action" type="button" data-ai-guide="${esc(q)}"><span>✦ Ask the Companion</span><em>Reflect on this need with AI</em></button></div></section>`;
+  return `<section class="recommendations" aria-live="polite"><div class="recommendation-heading"><div><p class="micro-label">Suggested for you</p><h2>Three prayers to consider</h2></div><span>${ranked.length} relevant result${ranked.length === 1 ? '' : 's'}</span></div><div class="recommendation-list">${recommendations.map((item,index) => recommendationCard(item,index+1,q)).join('')}</div><button class="ai-inline-action" type="button" data-ai-guide="${esc(q)}"><span>✦ Ask AI to help me choose</span><em>Uses these library recommendations as context</em></button>${ranked.length > 3 ? `<details class="more-results"><summary>See ${ranked.length - 3} more matching prayer${ranked.length - 3 === 1 ? '' : 's'}</summary><div class="list-panel">${ranked.slice(3,23).map(item => prayerRow(item.p)).join('')}</div></details>` : ''}</section>`;
 }
 function setTodayDefaults() {
   const now = new Date();
@@ -614,17 +664,34 @@ function renderHome() {
   </div>`;
 }
 function renderCompanion() {
-  const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : `<div class="companion-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">A quiet conversation</p><h2>What is on your heart?</h2><p>Share as much or as little as you wish. I can listen, offer a gentle next step, or help you find words for prayer.</p><div class="companion-prompts"><button type="button" data-companion-prompt="I am feeling anxious. Could you help me pray?">I’m feeling anxious</button><button type="button" data-companion-prompt="Help me find words of gratitude today.">Give thanks</button><button type="button" data-companion-prompt="I need a short prayer for someone I love.">Pray for someone</button></div></div>`;
-  return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">Private reflection</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="What is on your heart?" ${companionSending ? 'disabled' : ''}></textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">Not clergy, therapy, or emergency support. Avoid sensitive personal details. Conversations are not saved by this app.</p></section></div>`;
+  const feature = companionFeatures[companionFeature] || companionFeatures.reflect;
+  const featureTabs = Object.entries(companionFeatures).map(([id, item]) => `<button class="${id === companionFeature ? 'active' : ''}" type="button" data-companion-feature="${id}" aria-pressed="${id === companionFeature}">${esc(item.label)}</button>`).join('');
+  const prompts = feature.prompts.map(([label, prompt]) => `<button type="button" data-companion-prompt="${esc(prompt)}">${esc(label)}</button>`).join('');
+  const welcome = `<div class="companion-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">${esc(feature.eyebrow)}</p><h2>${esc(feature.title)}</h2><p>${esc(feature.description)}</p><div class="companion-prompts">${prompts}</div></div>`;
+  const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : welcome;
+  const contextBanner = companionContextLabel ? `<div class="companion-context"><span>Using app context</span><strong>${esc(companionContextLabel)}</strong><button type="button" data-clear-companion-context aria-label="Remove app context">×</button></div>` : '';
+  return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">AI prayer tools</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><nav class="companion-feature-tabs" aria-label="Choose an AI tool">${featureTabs}</nav>${contextBanner}<div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="${esc(feature.title)}" ${companionSending ? 'disabled' : ''}>${esc(companionDraft)}</textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">AI can make mistakes. Not clergy, therapy, or emergency support. Avoid sensitive personal details. Chats are not saved by this app.</p></section></div>`;
+}
+function openCompanionFeature(feature, options = {}) {
+  companionFeature = companionFeatures[feature] ? feature : 'reflect';
+  companionMessages = [];
+  companionSending = false;
+  companionDraft = String(options.draft || '');
+  companionContext = String(options.context || '').slice(0, 5000);
+  companionContextLabel = String(options.label || '');
+  closeSheet();
+  render('companion');
+  requestAnimationFrame(() => $('companion-input')?.focus());
 }
 async function sendCompanionMessage(text) {
   const message = String(text || '').trim();
   if (!message || companionSending) return;
+  companionDraft = '';
   companionMessages.push({ role: 'user', text: message });
   companionSending = true;
   render('companion');
   try {
-    const response = await fetch(COMPANION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: companionMessages.slice(-12) }) });
+    const response = await fetch(COMPANION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: companionMessages.slice(-12), feature: companionFeature, context: companionContext }) });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'The companion is unavailable right now.');
     companionMessages.push({ role: 'model', text: data.text || 'I’m sorry—I could not find words just now. Please try again.' });
@@ -652,7 +719,7 @@ function renderRule() {
   return `<div class="view">
     <div class="rule-header">
       <div><p class="micro-label">Daily Rule</p><h1 class="page-title">${esc(selectedDay)} ${esc(selectedOffice)}</h1><p class="subtitle">${esc(seg.theme)} • ${esc(seg.cycleTitle)} • ${esc(seg.seasonTitle)}</p></div>
-      <div class="top-actions"><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
+      <div class="top-actions"><button class="secondary-button" type="button" data-ai-rule>✦ AI guide</button><button class="secondary-button" type="button" data-open-sheet>Quick</button><button class="primary-button" type="button" data-start-rule>Pray</button></div>
     </div>
     <div class="quiet-card"><div class="stat-row">${presetPill}${stylePill}<span class="stat-pill">${steps.length} steps</span><span class="stat-pill">${ruleMinutes(steps)} min</span>${communionMode !== 'none' ? `<span class="stat-pill">${esc(rulesData.communionModes[communionMode].label)}</span>` : ''}</div></div>
     <div class="rule-path">${stepRows}</div>
@@ -712,7 +779,7 @@ function renderPrayerDetail(id) {
   const position = Number(readingPositions[p.id] || 0);
   const action = position > .04 ? 'Resume' : 'Read';
   const provenance = p.source === 'Jordanville Prayer Book' ? 'OCR-cleaned import; source comparison is still recommended for critical use.' : 'Curated app library text.';
-  return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span></div><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action}</button></div><p class="prayer-provenance">${esc(provenance)}</p><div class="reader-text prayer-detail-text">${prayerTextHTML(p)}</div></div>`;
+  return `<div class="view"><button class="secondary-button" type="button" data-back>← Back</button><div style="height:28px"></div><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span></div><div class="stat-row"><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action}</button></div><section class="prayer-ai-tools"><div><p class="micro-label">AI prayer tools</p><h3>Go deeper with this prayer</h3></div><div><button type="button" data-ai-explain="${esc(p.id)}"><span>✦ Explain</span><em>Words, images, and themes</em></button><button type="button" data-ai-reflect-prayer="${esc(p.id)}"><span>✦ Reflect</span><em>Bring it into today</em></button></div></section><p class="prayer-provenance">${esc(provenance)}</p><div class="reader-text prayer-detail-text">${prayerTextHTML(p)}</div></div>`;
 }
 function communionVariantIds(mode, variant) {
   const ids = (rulesData?.communionModes?.[mode]?.ids || []).filter(id => prayer(id));
@@ -961,9 +1028,38 @@ document.addEventListener('click', async (e) => {
   if (nav) { closeSheet(); activePrayerId = null; activeCategory = null; if (nav.dataset.nav === 'search') searchQuery = ''; render(nav.dataset.nav); return; }
   if (e.target.closest('[data-open-sheet]')) { openSheet(); return; }
   if (e.target.closest('[data-open-companion]')) { closeSheet(); render('companion'); return; }
-  if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; render('companion'); return; }
+  if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; companionDraft = ''; render('companion'); return; }
+  const companionFeatureButton = e.target.closest('[data-companion-feature]');
+  if (companionFeatureButton) { openCompanionFeature(companionFeatureButton.dataset.companionFeature); return; }
+  if (e.target.closest('[data-clear-companion-context]')) { companionContext = ''; companionContextLabel = ''; render('companion'); return; }
   const companionPrompt = e.target.closest('[data-companion-prompt]');
   if (companionPrompt) { sendCompanionMessage(companionPrompt.dataset.companionPrompt); return; }
+  const aiExplain = e.target.closest('[data-ai-explain]');
+  if (aiExplain) {
+    const p = prayer(aiExplain.dataset.aiExplain);
+    if (p) openCompanionFeature('explain', { label: p.title, context: `Prayer title: ${p.title}\nCategory: ${p.category}\nSource: ${p.source || 'Prayer Library'}\nPrayer text:\n${(p.text || []).join('\n').slice(0, 4200)}`, draft: `Explain this prayer in plain language. Focus on its key words, images, and spiritual themes, and do not invent historical details.` });
+    return;
+  }
+  const aiReflectPrayer = e.target.closest('[data-ai-reflect-prayer]');
+  if (aiReflectPrayer) {
+    const p = prayer(aiReflectPrayer.dataset.aiReflectPrayer);
+    if (p) openCompanionFeature('reflect', { label: p.title, context: `Prayer title: ${p.title}\nCategory: ${p.category}\nPrayer excerpt:\n${(p.text || []).join('\n').slice(0, 3000)}`, draft: `Help me reflect on this prayer and suggest one gentle way to carry it into today.` });
+    return;
+  }
+  if (e.target.closest('[data-ai-rule]')) {
+    const steps = currentSteps();
+    const titles = steps.map(step => step.type === 'prayer' ? prayer(step.id)?.title : step.title).filter(Boolean);
+    openCompanionFeature('rule', { label: `${selectedDay} ${selectedOffice} rule`, context: `Selected rule: ${selectedDay} ${selectedOffice}\nSeason: ${seasonOptions[seasonMode]?.label || seasonMode}\nApproximate duration: ${ruleMinutes(steps)} minutes\nPrayer sequence:\n${titles.map((title, index) => `${index + 1}. ${title}`).join('\n')}`, draft: `Help me approach this prayer rule attentively. Briefly explain its shape and suggest how to begin without rushing.` });
+    return;
+  }
+  const aiGuide = e.target.closest('[data-ai-guide]');
+  if (aiGuide) {
+    const need = aiGuide.dataset.aiGuide || searchQuery;
+    const matches = searchPrayers(need, true).slice(0, 5);
+    const options = matches.map((item, index) => `${index + 1}. ${item.p.title} — ${recommendationReason(item, need)}`).join('\n');
+    openCompanionFeature('reflect', { label: 'Prayer Guide recommendations', context: `The user described: ${need}\nThe app's private, on-device search suggested these existing library prayers:\n${options || 'No close library match was found.'}`, draft: `Help me reflect on what I described and choose a gentle next step. If useful, refer only to the prayer-library suggestions provided in the app context.` });
+    return;
+  }
   if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
   const cat = e.target.closest('[data-category]');
   if (cat) { activeCategory = cat.dataset.category; render('category'); return; }
