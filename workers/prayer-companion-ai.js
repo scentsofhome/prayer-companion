@@ -52,7 +52,7 @@ export default {
       const geminiRequest = JSON.stringify({
         systemInstruction: { parts: [{ text: `${SYSTEM_INSTRUCTION}\n\n${featureInstruction}` }] },
         contents,
-        generationConfig: { temperature: feature === 'explain' ? 0.45 : 0.7, maxOutputTokens: 650 }
+        generationConfig: { temperature: feature === 'explain' ? 0.45 : 0.7, maxOutputTokens: 2048 }
       });
 
       let lastUnavailable;
