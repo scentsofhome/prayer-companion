@@ -1,12 +1,12 @@
-const CACHE_NAME = 'orthodox-prayer-book-v37-guided-glass';
+const CACHE_NAME = 'orthodox-prayer-book-v38-today-in-the-church';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=22.0.0',
-  './src/session-time.js?v=22.0.0',
-  './src/app.js?v=22.0.0',
-  './src/extra-prayers.js?v=22.0.0',
+  './src/styles.css?v=23.0.0',
+  './src/session-time.js?v=23.0.0',
+  './src/app.js?v=23.0.0',
+  './src/extra-prayers.js?v=23.0.0',
   './data/prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',

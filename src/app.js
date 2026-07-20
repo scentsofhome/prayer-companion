@@ -1,4 +1,4 @@
-const VERSION = 'v22.0.0-guided-prayer';
+const VERSION = 'v23.0.0-today-in-the-church';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -11,7 +11,8 @@ function storageBundle(version) {
     positions: `prayerRule.${version}.positions`,
     communion: `prayerRule.${version}.communion`,
     tailoring: `prayerRule.${version}.tailoring`,
-    completion: `prayerRule.${version}.completion`
+    completion: `prayerRule.${version}.completion`,
+    daily: `prayerRule.${version}.daily`
   };
 }
 const STORAGE = storageBundle('v17serene');
@@ -71,7 +72,9 @@ const quickList = $('quick-list');
 const toast = $('toast');
 const assistantPanel = $('assistant-panel');
 const assistantContent = $('assistant-content');
-const COMPANION_ENDPOINT = 'https://prayer-companion-ai.scentsofhome4.workers.dev';
+const COMPANION_ENDPOINT = ['localhost', '127.0.0.1'].includes(location.hostname)
+  ? `${location.protocol}//${location.hostname}:8787`
+  : 'https://prayer-companion-ai.scentsofhome4.workers.dev';
 const companionFeatures = {
   reflect: {
     label: 'Reflect',
@@ -116,6 +119,13 @@ const companionFeatures = {
       ['What is watchfulness?', 'Explain the Orthodox prayer term “watchfulness” in plain language, without claiming spiritual authority.'],
       ['How should I read slowly?', 'Give me a simple way to read a traditional prayer slowly and attentively.']
     ]
+  },
+  daily: {
+    label: 'Today',
+    eyebrow: 'Today in the Church',
+    title: 'Understand this day',
+    description: 'Explore today’s commemoration and appointed readings with the official GOARCH calendar as context.',
+    prompts: []
   }
 };
 
@@ -144,6 +154,9 @@ let sessionCustomization = safeJSON(localStorage.getItem(STORAGE.tailoring), nul
 let sessionCompletion = safeJSON(localStorage.getItem(STORAGE.completion), null);
 let sessionGuideSending = false;
 let lastTranscriptScroll = 0;
+let dailyCalendar = null;
+let dailyCalendarLoading = true;
+let dailyCalendarError = '';
 
 let state = storedJSON('state', {}) || {};
 let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
@@ -210,6 +223,11 @@ function todayKey(d = new Date()) {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
+}
+function liturgicalDateKey() { return todayKey(sessionMoment.effectiveDate || new Date()); }
+function safeLink(value) {
+  try { const url = new URL(String(value || '')); return url.protocol === 'https:' ? url.toString() : ''; }
+  catch { return ''; }
 }
 function dateFromKey(key) { const [y,m,d] = String(key).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); }
 function previousKey(key) { const d = dateFromKey(key); d.setDate(d.getDate() - 1); return todayKey(d); }
@@ -283,10 +301,11 @@ async function init() {
     byId = new Map(p.prayers.map(item => [item.id, item]));
     renderQuickSheet();
     render('home');
+    loadDailyCalendar();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('prayerRule.swReloaded.v22')) return;
-        sessionStorage.setItem('prayerRule.swReloaded.v22', '1');
+        if (sessionStorage.getItem('prayerRule.swReloaded.v23')) return;
+        sessionStorage.setItem('prayerRule.swReloaded.v23', '1');
         location.reload();
       });
       navigator.serviceWorker.register('./service-worker.js?v=22.0.0').then(registration => registration.update()).catch(() => {});
@@ -294,6 +313,51 @@ async function init() {
   } catch (err) {
     console.error(err);
     screen.innerHTML = `<div class="view"><div class="quiet-card"><h3>Prayer data could not load</h3><p>Make sure the data folder, src folder, and index.html were uploaded together to GitHub Pages.</p></div></div>`;
+  }
+}
+
+function updateDailyView() {
+  if (reader || !['home', 'daily'].includes(currentView)) return;
+  const scrollTop = screen.scrollTop;
+  render(currentView);
+  requestAnimationFrame(() => { screen.scrollTop = scrollTop; });
+}
+
+async function loadDailyCalendar(force = false) {
+  const date = liturgicalDateKey();
+  const cached = safeJSON(localStorage.getItem(STORAGE.daily), null);
+  if (!force && cached?.date === date && cached?.data) {
+    dailyCalendar = cached.data;
+    dailyCalendarLoading = false;
+    dailyCalendarError = '';
+    updateDailyView();
+  } else if (!dailyCalendar || dailyCalendar.date !== date) {
+    dailyCalendar = null;
+    dailyCalendarLoading = true;
+    dailyCalendarError = '';
+    updateDailyView();
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 9000);
+  try {
+    const response = await fetch(`${COMPANION_ENDPOINT}/daily?date=${encodeURIComponent(date)}`, { signal: controller.signal, cache: 'no-store' });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Today’s calendar could not be loaded.');
+    if (data.date !== date || data.sourceDate !== date || !Array.isArray(data.saints) || !Array.isArray(data.readings)) throw new Error('Today’s calendar returned incomplete information.');
+    dailyCalendar = data;
+    dailyCalendarLoading = false;
+    dailyCalendarError = '';
+    localStorage.setItem(STORAGE.daily, JSON.stringify({ date, data, savedAt: Date.now() }));
+  } catch (error) {
+    if (!dailyCalendar || dailyCalendar.date !== date) {
+      dailyCalendar = null;
+      dailyCalendarLoading = false;
+      dailyCalendarError = error?.name === 'AbortError' ? 'Today’s calendar took too long to respond.' : (error?.message || 'Today’s calendar is temporarily unavailable.');
+    }
+  } finally {
+    clearTimeout(timeout);
+    updateDailyView();
   }
 }
 
@@ -689,6 +753,7 @@ function render(view = currentView) {
   saveState();
   let html = '';
   if (view === 'home') html = renderHome();
+  else if (view === 'daily') html = renderDailyCalendar();
   else if (view === 'rule') html = renderRule();
   else if (view === 'library') html = renderLibrary();
   else if (view === 'category') html = renderCategory(activeCategory);
@@ -716,6 +781,52 @@ function renderSessionGuide() {
     : `<div class="session-guide-welcome"><p>Tell me how you are arriving, what you are carrying, or how much time you have. I can change the prayers—not just suggest them.</p><div class="session-prompts"><button type="button" data-session-prompt="I have 5 minutes. Please make this prayer rule brief and attentive.">I have 5 minutes</button><button type="button" data-session-prompt="I feel anxious and need help settling into prayer.">I feel anxious</button><button type="button" data-session-prompt="I want to pray for someone I love.">For someone I love</button><button type="button" data-session-prompt="Help me slow down and pray without rushing.">Help me slow down</button></div></div>`;
   return `<section class="session-guide glass" aria-label="Shape this prayer with AI"><header><span class="companion-mark" aria-hidden="true">✦</span><div><p class="micro-label">Shape this prayer</p><h2>How are you arriving?</h2></div>${companionMessages.length ? '<button class="text-button" type="button" data-clear-session-chat>Clear</button>' : ''}</header>${transcript}<form class="session-compose" id="session-guide-form"><label class="sr-only" for="session-guide-input">Tell the Companion what you need</label><textarea id="session-guide-input" rows="1" maxlength="600" placeholder="I feel…  I have…  I want to pray about…" ${sessionGuideSending ? 'disabled' : ''}></textarea><button type="submit" aria-label="Shape my prayer" ${sessionGuideSending ? 'disabled' : ''}><span>Shape my prayer</span><b aria-hidden="true">↑</b></button></form><p class="companion-note">The Companion can adjust this session. It is not clergy or spiritual direction.</p></section>`;
 }
+
+function renderDailyGlance() {
+  if (dailyCalendarLoading && !dailyCalendar) {
+    return `<section class="today-glance glass is-loading" aria-label="Loading today in the Church"><span class="today-glyph" aria-hidden="true">☼</span><div><p class="micro-label">Today in the Church</p><span class="today-loading-line"></span><span class="today-loading-line short"></span></div></section>`;
+  }
+  if (!dailyCalendar) {
+    return `<section class="today-glance glass is-unavailable"><span class="today-glyph" aria-hidden="true">☼</span><div><p class="micro-label">Today in the Church</p><strong>Calendar unavailable</strong><small>${esc(dailyCalendarError || 'The daily source could not be reached.')}</small></div><button class="text-button" type="button" data-retry-daily>Try again</button></section>`;
+  }
+  const gospel = dailyCalendar.gospel?.reference || dailyCalendar.gospel?.title || '';
+  const secondary = [gospel ? `Gospel · ${gospel}` : '', dailyCalendar.tone || '', dailyCalendar.fasting || ''].filter(Boolean).slice(0, 2);
+  return `<section class="today-glance glass" aria-label="Today in the Church"><span class="today-glyph" aria-hidden="true">☼</span><div class="today-glance-copy"><p class="micro-label">Today in the Church</p><h2>${esc(dailyCalendar.title)}</h2><p>${secondary.map(esc).join('<i>·</i>')}</p></div><button class="today-open" type="button" data-nav="daily"><span>Learn about today</span><b aria-hidden="true">→</b></button></section>`;
+}
+
+function dailyReadingCard(reading, index) {
+  const url = safeLink(reading?.url);
+  const isGospel = /gospel/i.test(reading?.label || '');
+  return `<article class="daily-reading-card ${isGospel ? 'is-gospel' : ''}"><div><p class="micro-label">${esc(reading?.label || 'Reading')}</p><h3>${esc(reading?.reference || reading?.title || 'Appointed reading')}</h3>${reading?.excerpt ? `<p class="reading-excerpt">${esc(reading.excerpt)}…</p>` : ''}</div><div class="daily-card-actions"><button type="button" data-daily-question="reading" data-reading-index="${index}">✦ Explain this reading</button>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Read at GOARCH ↗</a>` : ''}</div></article>`;
+}
+
+function renderDailyCalendar() {
+  if (dailyCalendarLoading && !dailyCalendar) return `<div class="view daily-view"><button class="text-button back-button" type="button" data-nav="home">← Current prayer</button><div class="daily-loading glass"><div class="loading-orb"></div><p>Gathering today’s commemorations…</p></div></div>`;
+  if (!dailyCalendar) return `<div class="view daily-view"><button class="text-button back-button" type="button" data-nav="home">← Current prayer</button><section class="daily-empty glass"><p class="micro-label">Today in the Church</p><h1>The calendar is quiet for a moment.</h1><p>${esc(dailyCalendarError || 'The GOARCH daily source could not be reached.')}</p><button class="primary-button" type="button" data-retry-daily>Try again</button></section></div>`;
+
+  const data = dailyCalendar;
+  const source = safeLink(data.source?.url);
+  const saints = (data.saints || []).map((saint, index) => {
+    const url = safeLink(saint.url);
+    return `<li><span>${String(index + 1).padStart(2, '0')}</span><strong>${esc(saint.name)}</strong><div><button type="button" data-daily-question="saint" data-saint-index="${index}">✦ Ask</button>${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" aria-label="Read about ${esc(saint.name)} at GOARCH">GOARCH ↗</a>` : ''}</div></li>`;
+  }).join('');
+  const readingOrder = { Epistle: 0, Gospel: 1, 'Orthros Gospel': 2 };
+  const readings = (data.readings || []).map((reading, index) => ({ reading, index }))
+    .sort((a, b) => (readingOrder[a.reading.label] ?? 9) - (readingOrder[b.reading.label] ?? 9))
+    .map(item => dailyReadingCard(item.reading, item.index)).join('');
+  const observance = [data.tone, data.fasting].filter(Boolean);
+  return `<div class="view daily-view">
+    <button class="text-button back-button" type="button" data-nav="home">← Current prayer</button>
+    <header class="daily-hero glass">
+      <div class="daily-icon-wrap" aria-hidden="true"><span>☼</span></div>
+      <div><p class="micro-label">${esc(data.formattedDate || sessionMoment.dateLabel)} · ${esc(data.tradition || 'GOARCH calendar')}</p><h1>${esc(data.title)}</h1>${observance.length ? `<p class="daily-observance">${observance.map(item => `<span>${esc(item)}</span>`).join('')}</p>` : ''}<button class="primary-button daily-explain" type="button" data-daily-question="feast"><span>✦ Understand today</span><b aria-hidden="true">→</b></button></div>
+    </header>
+    <section class="daily-section"><div class="daily-section-head"><div><p class="micro-label">Appointed readings</p><h2>Listen to the day</h2></div><p>The explanations use this GOARCH calendar record as their factual context.</p></div><div class="daily-readings">${readings || '<p class="empty">No readings were supplied for this date.</p>'}</div></section>
+    <section class="daily-section saints-section"><div class="daily-section-head"><div><p class="micro-label">Commemorations</p><h2>Saints and feasts</h2></div><p>Open the official source or ask the Companion for a grounded introduction.</p></div><ol class="daily-saints">${saints || '<li><strong>No commemorations were supplied.</strong></li>'}</ol></section>
+    <footer class="daily-source-note"><span>Calendar tradition: ${esc(data.typikon || data.tradition || 'GOARCH')}</span>${source ? `<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">Source: GOARCH Online Chapel ↗</a>` : ''}<small>AI explanations may contain mistakes and are not a substitute for guidance from your priest.</small></footer>
+  </div>`;
+}
+
 function renderHome() {
   const segments = buildRuleSegments();
   const steps = currentSteps();
@@ -744,6 +855,7 @@ function renderHome() {
         <button class="primary-button session-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}><span>${completed ? 'Pray again' : hasResume ? 'Continue prayer' : 'Begin this prayer'}</span><b aria-hidden="true">→</b></button>
       </div>
     </section>
+    ${renderDailyGlance()}
     ${renderSessionGuide()}
   </div>`;
 }
@@ -806,6 +918,44 @@ async function sendCompanionMessage(text) {
     renderAssistantPanel();
     scrollTranscriptToEnd('companion-transcript', true);
   }
+}
+
+function dailyContext() {
+  if (!dailyCalendar) return '';
+  const readings = (dailyCalendar.readings || []).map(reading => `${reading.label}: ${reading.reference}${reading.excerpt ? ` — Excerpt: ${reading.excerpt}` : ''}`).join('\n');
+  const saints = (dailyCalendar.saints || []).map(saint => saint.name).join('; ');
+  return `Official calendar source: GOARCH Online Chapel
+Date: ${dailyCalendar.formattedDate || dailyCalendar.date}
+Calendar tradition: ${dailyCalendar.tradition || 'GOARCH / New Calendar'}
+Typikon: ${dailyCalendar.typikon || 'Not supplied'}
+Commemoration title: ${dailyCalendar.title}
+Saints and feasts: ${saints || 'Not supplied'}
+Tone: ${dailyCalendar.tone || 'Not supplied'}
+Fasting note: ${dailyCalendar.fasting || 'Not supplied'}
+Appointed readings:
+${readings || 'Not supplied'}
+Source link: ${dailyCalendar.source?.url || 'https://www.goarch.org/chapel'}
+
+Only the lines above are verified source context. If a requested biographical or historical detail is not present, clearly distinguish general knowledge from the GOARCH record and avoid uncertain specifics.`.slice(0, 5000);
+}
+
+function askAboutDaily(kind, index = 0) {
+  if (!dailyCalendar) return;
+  let label = dailyCalendar.title;
+  let prompt = `Explain today’s commemoration, “${dailyCalendar.title},” in plain language. Begin with what the GOARCH calendar actually establishes, then offer a brief spiritual reflection for prayer today.`;
+  if (kind === 'saint') {
+    const saint = dailyCalendar.saints?.[index];
+    if (!saint) return;
+    label = saint.name;
+    prompt = `Tell me about “${saint.name},” who is commemorated today. Be concise. Clearly separate what today’s GOARCH record confirms from any broader background, and do not invent biographical details or quotations.`;
+  } else if (kind === 'reading') {
+    const reading = dailyCalendar.readings?.[index];
+    if (!reading) return;
+    label = `${reading.label} · ${reading.reference}`;
+    prompt = `Explain today’s appointed ${reading.label.toLowerCase()}, ${reading.reference}, in plain language. Use the supplied excerpt and calendar context. Describe its central movement, why it fits Christian prayer today, and end with one quiet question for reflection.`;
+  }
+  openCompanionFeature('daily', { label, context: dailyContext() });
+  sendCompanionMessage(prompt);
 }
 
 function requestedMinutes(message) {
@@ -1231,6 +1381,9 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; companionDraft = ''; renderAssistantPanel(); return; }
   if (e.target.closest('[data-clear-session-chat]')) { companionMessages = []; sessionGuideSending = false; renderHomePreservingScroll(screen.scrollTop); return; }
   if (e.target.closest('[data-reset-session]')) { resetSessionTailoring(); companionMessages = []; showToast('Usual prayer rule restored'); render('home'); return; }
+  if (e.target.closest('[data-retry-daily]')) { dailyCalendarLoading = true; dailyCalendarError = ''; updateDailyView(); loadDailyCalendar(true); return; }
+  const dailyQuestion = e.target.closest('[data-daily-question]');
+  if (dailyQuestion) { askAboutDaily(dailyQuestion.dataset.dailyQuestion, Number(dailyQuestion.dataset.saintIndex ?? dailyQuestion.dataset.readingIndex ?? 0)); return; }
   const sessionPrompt = e.target.closest('[data-session-prompt]');
   if (sessionPrompt) { sendSessionMessage(sessionPrompt.dataset.sessionPrompt); return; }
   const companionFeatureButton = e.target.closest('[data-companion-feature]');
@@ -1320,7 +1473,20 @@ document.addEventListener('submit', (e) => {
 
 ['mousemove','touchstart','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && reader) requestWakeLock();
+  if (document.visibilityState !== 'visible') return;
+  if (reader) { requestWakeLock(); return; }
+  const previousDate = liturgicalDateKey();
+  const nextMoment = window.PrayerSessionTime?.forDate(new Date()) || sessionMoment;
+  sessionMoment = nextMoment;
+  if (liturgicalDateKey() !== previousDate) {
+    selectedDay = nextMoment.day;
+    selectedOffice = nextMoment.office;
+    resetSessionTailoring();
+    saveState();
+    loadDailyCalendar(true);
+  } else if (currentView === 'home') {
+    render('home');
+  }
 });
 document.addEventListener('keydown', (e) => {
   if (!reader && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchQuery = ''; render('search'); }
