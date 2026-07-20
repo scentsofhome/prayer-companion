@@ -308,7 +308,7 @@ async function init() {
         sessionStorage.setItem('prayerRule.swReloaded.v23', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=22.0.0').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=23.0.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
