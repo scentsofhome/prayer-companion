@@ -982,6 +982,13 @@ function parseSessionUpdate(text) {
 function cleanSessionResponse(text) {
   return String(text || '').replace(/<session_update>[\s\S]*?<\/session_update>/gi, '').replace(/^\s*```json\s*\{[^\n]+\}\s*```\s*/i, '').replace(/^\s*\{[^\n]+\}\s*/i, '').trim();
 }
+function safeSessionResponse(text) {
+  const cleaned = cleanSessionResponse(text);
+  const malformed = cleaned.length > 1200 || /printStackTrace|(?:\.Forms){2,}|(?:olumn){3,}/i.test(cleaned);
+  return !cleaned || malformed
+    ? 'I have shaped the prayer around what you shared. **Begin gently**—attention matters more than finishing quickly.'
+    : cleaned;
+}
 function fallbackSessionUpdate(message, candidates) {
   const minutes = requestedMinutes(message) || ruleDuration;
   const focusIds = searchPrayers(message, true).slice(0, /someone|family|sick|grief|anx/i.test(message) ? 2 : 1).map(item => item.p.id);
@@ -1043,7 +1050,7 @@ async function sendSessionMessage(text) {
     responseText = `I adjusted the session from what you shared. **Begin gently**—attention matters more than finishing quickly.\n\n${error.message ? `_The live guidance was unavailable, so I used the prayer book’s on-device planner._` : ''}`;
   }
   const applied = applySessionUpdate(update || fallbackSessionUpdate(message, candidates), message, candidates);
-  companionMessages.push({ role:'model', text:cleanSessionResponse(responseText) || 'I have shaped the prayer around what you shared. Begin gently, without rushing.', action:applied });
+  companionMessages.push({ role:'model', text:safeSessionResponse(responseText), action:applied });
   sessionGuideSending = false;
   renderHomePreservingScroll(outerScroll, true);
 }
