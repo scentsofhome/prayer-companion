@@ -776,10 +776,11 @@ function companionMessageHTML(message) {
   return `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><div>${message.role === 'model' ? markdownHTML(message.text) : `<p>${esc(message.text)}</p>`}</div>${action}</article>`;
 }
 function renderSessionGuide() {
-  const transcript = companionMessages.length
-    ? `<div class="session-conversation" id="session-conversation" aria-live="polite">${companionMessages.map(companionMessageHTML).join('')}${sessionGuideSending ? '<div class="companion-thinking"><i></i><i></i><i></i><span>Shaping your prayer…</span></div>' : ''}</div>`
+  const sessionMessages = companionPlacement === 'home' ? companionMessages : [];
+  const transcript = sessionMessages.length
+    ? `<div class="session-conversation" id="session-conversation" aria-live="polite">${sessionMessages.map(companionMessageHTML).join('')}${sessionGuideSending ? '<div class="companion-thinking"><i></i><i></i><i></i><span>Shaping your prayer…</span></div>' : ''}</div>`
     : `<div class="session-guide-welcome"><p>Tell me how you are arriving, what you are carrying, or how much time you have. I can change the prayers—not just suggest them.</p><div class="session-prompts"><button type="button" data-session-prompt="I have 5 minutes. Please make this prayer rule brief and attentive.">I have 5 minutes</button><button type="button" data-session-prompt="I feel anxious and need help settling into prayer.">I feel anxious</button><button type="button" data-session-prompt="I want to pray for someone I love.">For someone I love</button><button type="button" data-session-prompt="Help me slow down and pray without rushing.">Help me slow down</button></div></div>`;
-  return `<section class="session-guide glass" aria-label="Shape this prayer with AI"><header><span class="companion-mark" aria-hidden="true">✦</span><div><p class="micro-label">Shape this prayer</p><h2>How are you arriving?</h2></div>${companionMessages.length ? '<button class="text-button" type="button" data-clear-session-chat>Clear</button>' : ''}</header>${transcript}<form class="session-compose" id="session-guide-form"><label class="sr-only" for="session-guide-input">Tell the Companion what you need</label><textarea id="session-guide-input" rows="1" maxlength="600" placeholder="I feel…  I have…  I want to pray about…" ${sessionGuideSending ? 'disabled' : ''}></textarea><button type="submit" aria-label="Shape my prayer" ${sessionGuideSending ? 'disabled' : ''}><span>Shape my prayer</span><b aria-hidden="true">↑</b></button></form><p class="companion-note">The Companion can adjust this session. It is not clergy or spiritual direction.</p></section>`;
+  return `<section class="session-guide glass" aria-label="Shape this prayer with AI"><header><span class="companion-mark" aria-hidden="true">✦</span><div><p class="micro-label">Shape this prayer</p><h2>How are you arriving?</h2></div>${sessionMessages.length ? '<button class="text-button" type="button" data-clear-session-chat>Clear</button>' : ''}</header>${transcript}<form class="session-compose" id="session-guide-form"><label class="sr-only" for="session-guide-input">Tell the Companion what you need</label><textarea id="session-guide-input" rows="1" maxlength="600" placeholder="I feel…  I have…  I want to pray about…" ${sessionGuideSending ? 'disabled' : ''}></textarea><button type="submit" aria-label="Shape my prayer" ${sessionGuideSending ? 'disabled' : ''}><span>Shape my prayer</span><b aria-hidden="true">↑</b></button></form><p class="companion-note">The Companion can adjust this session. It is not clergy or spiritual direction.</p></section>`;
 }
 
 function renderDailyGlance() {
@@ -1018,6 +1019,7 @@ function renderHomePreservingScroll(scrollTop, smooth = false) {
 async function sendSessionMessage(text) {
   const message = String(text || '').trim();
   if (!message || sessionGuideSending) return;
+  if (companionPlacement !== 'home') companionMessages = [];
   companionPlacement = 'home';
   companionFeature = 'rule';
   companionMessages.push({ role:'user', text:message });
