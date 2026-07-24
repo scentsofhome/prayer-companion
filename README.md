@@ -2,6 +2,15 @@
 
 A premium Orthodox prayer rule Progressive Web App with a cleaner app-style Home screen, offline support, guided page-by-page prayer, Spotlight search, favorites, personal intercessions, rule presets, dynamic prayer planning, season mode, and liquid-glass controls.
 
+## Smoother Companion release
+
+- Added ten carefully selected prayers from the public-domain 1894 *Book of Needs of the Holy Orthodox Church*, including prayers for a new home, a journey, healing, first fruits, and intercessions to healing saints.
+- Added transparent source, rights, and chapter information to imported prayer details, with a direct link back to [Project Gutenberg eBook 71513](https://www.gutenberg.org/ebooks/71513).
+- Connected the Prayer Companion directly to prayer search, the prayer-book menu, individual prayer explanations, and the session planner.
+- Added one-tap “Add to today” actions from every prayer and richer prayer metadata for AI session shaping.
+- Added AI request timeouts with a graceful on-device planner fallback, smoother expanding message fields, a clearer library count, and a prominent search-by-need entry point.
+- Kept the deployed Cloudflare Worker contract and implementation unchanged; this release only updates the static web app and its offline cache.
+
 ## Smart prayer release
 
 - Added intention-aware offline search for needs such as anxiety, study, grief, illness, confession, travel, and guidance.

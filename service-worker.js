@@ -1,13 +1,14 @@
-const CACHE_NAME = 'orthodox-prayer-book-v38-today-in-the-church';
+const CACHE_NAME = 'orthodox-prayer-book-v39-smoother-companion';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=23.0.0',
-  './src/session-time.js?v=23.0.0',
-  './src/app.js?v=23.0.0',
-  './src/extra-prayers.js?v=23.0.0',
+  './src/styles.css?v=24.0.0',
+  './src/session-time.js?v=24.0.0',
+  './src/app.js?v=24.0.0',
+  './src/extra-prayers.js?v=24.0.0',
   './data/prayers.json',
+  './data/public-domain-prayers.json',
   './data/prayer-rules.json',
   './data/psalm-50-51/01.txt',
   './data/psalm-50-51/02.txt',
@@ -58,7 +59,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const freshAsset = ['/src/app.js', '/src/session-time.js', '/src/styles.css', '/src/extra-prayers.js', '/data/prayers.json', '/data/prayer-rules.json']
+  const freshAsset = ['/src/app.js', '/src/session-time.js', '/src/styles.css', '/src/extra-prayers.js', '/data/prayers.json', '/data/public-domain-prayers.json', '/data/prayer-rules.json']
     .some(path => url.pathname.endsWith(path));
   if (freshAsset) {
     event.respondWith(fetch(request).then(response => {

@@ -1,0 +1,208 @@
+{
+  "version": "1.0.0",
+  "source": {
+    "title": "Book of Needs of the Holy Orthodox Church",
+    "translator": "G. V. Shann",
+    "publicationYear": 1894,
+    "provider": "Project Gutenberg",
+    "url": "https://www.gutenberg.org/ebooks/71513",
+    "rights": "Public domain"
+  },
+  "prayers": [
+    {
+      "id": "pd-prayer-for-first-fruits",
+      "title": "Prayer for the Offering of First Fruits",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": ["harvest", "food", "first fruits", "offering", "thanksgiving", "provision"],
+      "themes": ["thanksgiving", "stewardship"],
+      "contexts": ["harvest", "garden", "offering", "thanksgiving"],
+      "text": [
+        "Master, Lord our God, who biddest everyone according to their purpose to offer unto thee thine own of thine own, and bestowest upon them in return thine everlasting blessings, who didst favourably accept the offering of as much as she could of the widow; do thou now also accept the things offered by thy servant, name, and vouchsafe to lay up the same in thine eternal treasury, and grant unto him abundant possession of thy worldly blessings, together with all things that are serviceable unto him.",
+        "For blessed is thy name, and glorified is thy kingdom, of the Father, and of the Son, and of the Holy Ghost, now and ever, and to ages of ages. Amen."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Chapter XXVII; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 1,
+      "length": "short",
+      "weight": 54
+    },
+    {
+      "id": "pd-prayer-at-the-foundation-of-a-house",
+      "title": "Prayer at the Foundation of a House",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": ["house", "home", "building", "construction", "foundation", "family"],
+      "themes": ["protection", "work", "family"],
+      "contexts": ["new home", "construction", "moving", "family"],
+      "text": [
+        "O God Almighty, who didst make the heaven in understanding, and didst found the earth on its firmness, thou builder and creator of all; look upon thy servant, name, who purposeth, in the might of thy strength, to erect a house for habitation, and to set it up with a building. Do thou stablish the same on a firm rock, and, according to thy divine evangelical voice, so found it that neither wind nor water, nor anything whatsoever may be able to injure it. Be pleased to bring it to completion, and deliver them that desire to live therein from every snare of the enemy.",
+        "For thine is the might, and thine is the kingdom, and the power, and the glory, of the Father, and of the Son, and of the Holy Ghost, now and ever, and to ages of ages. Amen."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Chapter XXVIII; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 1.2,
+      "length": "short",
+      "weight": 58
+    },
+    {
+      "id": "pd-prayer-when-entering-a-new-house",
+      "title": "Prayer When Entering a New House",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": ["new house", "new home", "moving", "household", "family", "protection"],
+      "themes": ["protection", "family", "blessing"],
+      "contexts": ["new home", "moving", "household", "family"],
+      "text": [
+        "O God our Saviour, who was pleased to enter in under the roof of Zaccheus, and didst bring salvation unto him and unto all his house; do thou thyself now also preserve unhurt from every harm them that have purposed to live here, and offer unto thee prayers and supplications through us unworthy ones, blessing those whose dwelling-place is here, and preserving their life without snares.",
+        "For to thee is due all glory, honour, and worship, with thine unbeginning Father, and with thy most holy, and good, and life-creating Spirit, now and ever, and to ages of ages. Amen."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Chapter XXIX; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 1,
+      "length": "short",
+      "weight": 60
+    },
+    {
+      "id": "pd-prayer-for-one-going-on-a-journey",
+      "title": "Prayer for One Going on a Journey",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": ["travel", "journey", "trip", "driving", "flight", "safety", "travelling"],
+      "themes": ["protection", "guidance"],
+      "contexts": ["travel", "journey", "departure", "return"],
+      "text": [
+        "O God, our God, the true and living way, who didst journey with thy servant Joseph; do thou journey with thy servant, name, and deliver him from every storm and snare, and peace and vigour continually provide. Be pleased that, having accomplished every intention of righteousness, according to thy commandment, and being filled with temporal and heavenly blessings, he may return again.",
+        "For thine is the kingdom, and the power, and the glory, of the Father, and of the Son, and of the Holy Ghost, now and ever, and to ages of ages. Amen."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Chapter XXXIII; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 1,
+      "length": "short",
+      "weight": 60
+    },
+    {
+      "id": "pd-troparion-for-one-who-is-ill",
+      "title": "Troparion for One Who Is Ill",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": ["sick", "illness", "hospital", "healing", "pain", "health"],
+      "themes": ["healing", "intercession", "mercy"],
+      "contexts": ["illness", "hospital", "pain", "intercession"],
+      "text": [
+        "Thou that alone art quick to help, O Christ, make manifest from on high a speedy visitation to thine ailing servant: deliver him from sicknesses and bitter pains, and raise him up, that, without ceasing, he may praise and glorify thee, through the God-bearing one’s entreaties, O thou sole lover of mankind."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "From the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 0.5,
+      "length": "short",
+      "weight": 62
+    },
+    {
+      "id": "pd-prayer-to-the-physician-of-souls-and-bodies",
+      "title": "Prayer to the Physician of Souls and Bodies",
+      "category": "Prayers for Others",
+      "type": "prayer",
+      "tags": ["sick", "illness", "hospital", "healing", "recovery", "health"],
+      "themes": ["healing", "intercession", "mercy"],
+      "contexts": ["illness", "hospital", "recovery", "intercession"],
+      "text": [
+        "Holy Father, physician of souls and bodies, who didst send thine only-begotten Son, our Lord Jesus Christ, who healeth every infirmity, and delivereth from death; do thou heal thy servant, name, from the bodily and spiritual weakness that presseth upon him, and quicken him by the grace of thy Christ; through the prayers of our most holy Lady, the God-bearing and ever-virgin Mary; through the intercession of the honourable, heavenly bodiless powers; through the power of the precious and life-effecting cross; of the honourable glorious prophet, Forerunner, and Baptist John; of the holy, glorious, and all-praised apostles; of the holy glorious, and excellently victorious martyrs; of our venerable and god-bearing fathers; of the holy and unmercenary physicians, Cosmas and Damian, Cyrus and John, Pantelimon and Hermolaus, Sampson and Diomed, Photius and Anicetas; of the holy and righteous god-progenitors, Joakim and Anna, and of all the Saints.",
+        "For thou art the fount of healing, O our God, and to thee we ascribe glory, with thine only-begotten Son, and with thy consubstantial Spirit, now and ever, and to ages of ages. Amen."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "From the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 1.8,
+      "length": "medium",
+      "weight": 58
+    },
+    {
+      "id": "pd-prayer-to-saint-panteleimon",
+      "title": "Prayer to Saint Panteleimon",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": ["saint panteleimon", "physician", "sick", "healing", "illness", "intercession"],
+      "themes": ["healing", "intercession", "mercy"],
+      "contexts": ["illness", "hospital", "recovery", "saints"],
+      "text": [
+        "Thou holy pain-enduring one, physician too, O Pantelimon, mediate with God the merciful, that he may grant our souls remission of iniquities."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Troparion from the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 0.5,
+      "length": "short",
+      "weight": 56
+    },
+    {
+      "id": "pd-prayer-to-the-holy-unmercenary-physicians",
+      "title": "Prayer to the Holy Unmercenary Physicians",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": ["unmercenary physicians", "saints", "sick", "healing", "illness", "intercession"],
+      "themes": ["healing", "intercession", "mercy"],
+      "contexts": ["illness", "hospital", "recovery", "saints"],
+      "text": [
+        "Ye saints that were unmercenary and wonders wrought, make visitation in our weaknesses. Freely ye have received: O freely give to us."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Troparion from the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 0.5,
+      "length": "short",
+      "weight": 56
+    },
+    {
+      "id": "pd-prayer-to-the-theotokos-in-danger",
+      "title": "Prayer to the Theotokos in Danger",
+      "category": "Theotokos, Saints & Angels",
+      "type": "prayer",
+      "tags": ["theotokos", "mother of god", "danger", "protection", "help", "intercession"],
+      "themes": ["protection", "intercession", "mercy"],
+      "contexts": ["danger", "anxiety", "trouble", "theotokos"],
+      "text": [
+        "Warm advocate and assailless wall, the spring of mercy and the world’s defence, to thee unceasingly we cry, God-bearing Queen, prevent thou us, and us from dangers free, thou that alone art quick to intercede."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Theotokion from the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 0.5,
+      "length": "short",
+      "weight": 58
+    },
+    {
+      "id": "pd-prayer-for-healing-of-the-soul",
+      "title": "Prayer for Healing of the Soul",
+      "category": "Various Occasions",
+      "type": "prayer",
+      "tags": ["repentance", "healing", "soul", "sin", "mercy", "renewal"],
+      "themes": ["repentance", "healing", "mercy"],
+      "contexts": ["confession", "repentance", "spiritual healing"],
+      "text": [
+        "My soul, that, Lord, by every kind of sin and unbecoming deeds is paralysed, O by thy godlike intervention do thou raise, as thou of old a paralytic didst upraise, that I, being saved, may cry to thee, Give healing unto me, O Christ compassionate."
+      ],
+      "source": "Book of Needs (1894)",
+      "sourceUrl": "https://www.gutenberg.org/ebooks/71513",
+      "sourceNote": "Troparion from the Office of Holy Unction; public-domain English translation by G. V. Shann.",
+      "rights": "Public domain",
+      "estimatedMinutes": 0.5,
+      "length": "short",
+      "weight": 58
+    }
+  ]
+}
