@@ -1,4 +1,4 @@
-const VERSION = 'v24.0.0-smoother-companion';
+const VERSION = 'v25.0.0-apple-navigation';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -74,6 +74,7 @@ const quickList = $('quick-list');
 const toast = $('toast');
 const assistantPanel = $('assistant-panel');
 const assistantContent = $('assistant-content');
+const tabDock = $('tab-dock');
 const COMPANION_ENDPOINT = ['localhost', '127.0.0.1'].includes(location.hostname)
   ? `${location.protocol}//${location.hostname}:8787`
   : 'https://prayer-companion-ai.scentsofhome4.workers.dev';
@@ -159,6 +160,8 @@ let lastTranscriptScroll = 0;
 let dailyCalendar = null;
 let dailyCalendarLoading = true;
 let dailyCalendarError = '';
+let routeDepth = Number(history.state?.prayerDepth || 0);
+const viewScrollPositions = new Map();
 
 let state = storedJSON('state', {}) || {};
 let selectedDay = state.selectedDay || dayNames[new Date().getDay()];
@@ -305,16 +308,17 @@ async function init() {
     rulesData = r;
     allPrayers = p.prayers.filter(item => item.type === 'prayer');
     byId = new Map(p.prayers.map(item => [item.id, item]));
+    history.replaceState({ prayerView:'home', prayerDepth:routeDepth, activeCategory:null, activePrayerId:null, activeCommunionMode, previousView:'library' }, '');
     renderQuickSheet();
     render('home');
     loadDailyCalendar();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('prayerRule.swReloaded.v24')) return;
-        sessionStorage.setItem('prayerRule.swReloaded.v24', '1');
+        if (sessionStorage.getItem('prayerRule.swReloaded.v25')) return;
+        sessionStorage.setItem('prayerRule.swReloaded.v25', '1');
         location.reload();
       });
-      navigator.serviceWorker.register('./service-worker.js?v=24.0.0').then(registration => registration.update()).catch(() => {});
+      navigator.serviceWorker.register('./service-worker.js?v=25.0.0').then(registration => registration.update()).catch(() => {});
     }
   } catch (err) {
     console.error(err);
@@ -750,6 +754,49 @@ function shouldAutofocusSearch() {
   return window.matchMedia?.('(pointer: fine)').matches || window.innerWidth >= 760;
 }
 
+function primaryTabForView(view) {
+  if (view === 'home' || view === 'daily') return 'home';
+  if (view === 'settings') return 'settings';
+  if (view === 'search') return 'search';
+  if (view === 'library' || view === 'category') return 'library';
+  if (view === 'prayer') return previousView === 'search' ? 'search' : 'library';
+  return '';
+}
+function syncPrimaryNavigation() {
+  if (!tabDock) return;
+  const active = assistantOpen ? 'companion' : primaryTabForView(currentView);
+  tabDock.querySelectorAll('[data-tab]').forEach(button => {
+    const selected = button.dataset.tab === active;
+    button.classList.toggle('active', selected);
+    if (selected) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+}
+function saveCurrentViewScroll() {
+  if (screen && currentView) viewScrollPositions.set(currentView, screen.scrollTop);
+}
+function restoreViewScroll(view, fallback = 0) {
+  requestAnimationFrame(() => { screen.scrollTop = viewScrollPositions.get(view) ?? fallback; });
+}
+function routeState(view, depth) {
+  return { prayerView:view, prayerDepth:depth, activeCategory, activePrayerId, activeCommunionMode, previousView };
+}
+function navigateTo(view, options = {}) {
+  const target = view === 'companion' || view === 'rule' ? 'home' : view;
+  saveCurrentViewScroll();
+  const sameView = target === currentView;
+  if (!sameView || options.forceHistory) {
+    routeDepth += 1;
+    history.pushState(routeState(target, routeDepth), '');
+  }
+  render(target);
+  if (options.restore !== false) restoreViewScroll(target);
+}
+function navigateBack(fallback = 'library') {
+  if (routeDepth > 0) history.back();
+  else navigateTo(fallback, { restore:true });
+}
+
 function render(view = currentView) {
   if (view === 'companion' || view === 'rule') view = 'home';
   currentView = view;
@@ -769,6 +816,7 @@ function render(view = currentView) {
   else if (view === 'prayer') html = renderPrayerDetail(activePrayerId);
   else if (view === 'communion') html = renderCommunion(activeCommunionMode);
   screen.innerHTML = html;
+  syncPrimaryNavigation();
   if (view === 'search') setTimeout(() => { if (shouldAutofocusSearch()) $('search-field')?.focus(); }, 80);
   screen.scrollTop = 0;
   renderAssistantPanel();
@@ -880,6 +928,7 @@ function renderAssistantPanel() {
   if (!assistantPanel || !assistantContent) return;
   assistantPanel.classList.toggle('open', assistantOpen);
   assistantPanel.setAttribute('aria-hidden', assistantOpen ? 'false' : 'true');
+  syncPrimaryNavigation();
   if (!assistantOpen) { assistantContent.innerHTML = ''; return; }
   const feature = companionFeatures[companionFeature] || companionFeatures.reflect;
   const welcome = companionMessages.length ? '' : `<div class="assistant-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">${esc(feature.eyebrow)}</p><h2>${esc(feature.title)}</h2><p>${esc(feature.description)}</p><div class="companion-prompts">${feature.prompts.map(([label,prompt]) => `<button type="button" data-companion-prompt="${esc(prompt)}">${esc(label)}</button>`).join('')}</div></div>`;
@@ -902,7 +951,8 @@ function openCompanionFeature(feature, options = {}) {
   companionPlacement = 'panel';
   assistantOpen = true;
   closeSheet();
-  render(currentView);
+  document.body.classList.add('assistant-open');
+  renderAssistantPanel();
   requestAnimationFrame(() => $('companion-input')?.focus());
 }
 async function sendCompanionMessage(text) {
@@ -1428,10 +1478,42 @@ screen.addEventListener('change', (e) => {
 
 document.addEventListener('click', async (e) => {
   const nav = e.target.closest('[data-nav]');
-  if (nav) { closeSheet(); activePrayerId = null; activeCategory = null; if (nav.dataset.nav === 'search') searchQuery = ''; render(nav.dataset.nav); return; }
+  if (nav) {
+    closeSheet();
+    assistantOpen = false;
+    document.body.classList.remove('assistant-open');
+    renderAssistantPanel();
+    const target = nav.dataset.nav;
+    if (target === currentView) { screen.scrollTo({ top:0, behavior:'smooth' }); return; }
+    activePrayerId = null;
+    activeCategory = null;
+    if (target === 'search') searchQuery = '';
+    navigateTo(target, { restore:true });
+    return;
+  }
   if (e.target.closest('[data-open-sheet], [data-open-menu]')) { openSheet(); return; }
   if (e.target.closest('[data-close-assistant]')) { assistantOpen = false; renderAssistantPanel(); document.body.classList.remove('assistant-open'); return; }
-  if (e.target.closest('[data-open-companion]')) { closeSheet(); companionMessages = []; companionFeature = 'reflect'; companionContext = ''; companionContextLabel = ''; assistantOpen = true; renderAssistantPanel(); return; }
+  if (e.target.closest('[data-open-companion]')) {
+    closeSheet();
+    if (assistantOpen) {
+      assistantOpen = false;
+      document.body.classList.remove('assistant-open');
+      renderAssistantPanel();
+      return;
+    }
+    if (companionPlacement !== 'panel') {
+      companionMessages = [];
+      companionFeature = 'reflect';
+      companionContext = '';
+      companionContextLabel = '';
+    }
+    companionPlacement = 'panel';
+    assistantOpen = true;
+    document.body.classList.add('assistant-open');
+    renderAssistantPanel();
+    requestAnimationFrame(() => $('companion-input')?.focus());
+    return;
+  }
   if (e.target.closest('[data-clear-companion]')) { companionMessages = []; companionSending = false; companionDraft = ''; renderAssistantPanel(); return; }
   if (e.target.closest('[data-clear-session-chat]')) { companionMessages = []; sessionGuideSending = false; renderHomePreservingScroll(screen.scrollTop); return; }
   if (e.target.closest('[data-reset-session]')) { resetSessionTailoring(); companionMessages = []; showToast('Usual prayer rule restored'); render('home'); return; }
@@ -1473,20 +1555,20 @@ document.addEventListener('click', async (e) => {
   }
   if (e.target.closest('[data-close-sheet]')) { closeSheet(); return; }
   const cat = e.target.closest('[data-category]');
-  if (cat) { activeCategory = cat.dataset.category; render('category'); return; }
+  if (cat) { activeCategory = cat.dataset.category; navigateTo('category', { restore:false }); return; }
   const openPrayer = e.target.closest('[data-open-prayer]');
-  if (openPrayer) { closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); render('prayer'); return; }
-  if (e.target.closest('[data-back]')) { render(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); requestAnimationFrame(() => { screen.scrollTop = previousScrollTop; }); return; }
+  if (openPrayer) { closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); navigateTo('prayer', { restore:false }); return; }
+  if (e.target.closest('[data-back]')) { navigateBack(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); return; }
   if (e.target.closest('[data-start-rule]')) { startRule(0); return; }
   if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0, saved?.position || 0); return; }
-  if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = p.id; rememberPrayer(p.id); render('prayer'); return; }
+  if (e.target.closest('[data-random-prayer]')) { const p = randomPrayer(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = p.id; rememberPrayer(p.id); navigateTo('prayer', { restore:false }); return; }
   const suggestion = e.target.closest('[data-search-suggestion]');
   if (suggestion) { searchQuery = suggestion.dataset.searchSuggestion || ''; render('search'); return; }
   if (e.target.closest('[data-use-today]')) { setTodayDefaults(); render('home'); return; }
   const day = e.target.closest('[data-day-set]');
   if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); saveState(); render('home'); return; }
   const communionPage = e.target.closest('[data-open-communion]');
-  if (communionPage) { closeSheet(); activeCommunionMode = communionPage.dataset.openCommunion; render('communion'); return; }
+  if (communionPage) { closeSheet(); activeCommunionMode = communionPage.dataset.openCommunion; navigateTo('communion', { restore:false }); return; }
   const communion = e.target.closest('[data-start-communion]');
   if (communion) { startCommunionRule(communion.dataset.startCommunion, communion.dataset.communionVariant || 'full'); return; }
   const preset = e.target.closest('[data-rule-preset]');
@@ -1505,7 +1587,7 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('[data-close-reader]')) { closeReader(); return; }
   if (e.target.closest('[data-reader-prev]')) { prevReader(); return; }
   if (e.target.closest('[data-reader-next]')) { nextReader(); return; }
-  if (e.target.closest('[data-finish-reader]')) { closeReader(); render('home'); return; }
+  if (e.target.closest('[data-finish-reader]')) { closeReader(); navigateTo('home', { restore:false }); return; }
   const theme = e.target.closest('[data-theme-set]');
   if (theme) { appearance.theme = theme.dataset.themeSet; applyAppearance(); screen.querySelectorAll('[data-theme-set]').forEach(button => button.classList.toggle('active', button.dataset.themeSet === appearance.theme)); return; }
   const office = e.target.closest('[data-office-set]');
@@ -1544,8 +1626,22 @@ document.addEventListener('visibilitychange', () => {
     render('home');
   }
 });
+window.addEventListener('popstate', (event) => {
+  if (!prayersData) return;
+  saveCurrentViewScroll();
+  assistantOpen = false;
+  document.body.classList.remove('assistant-open');
+  routeDepth = Number(event.state?.prayerDepth || 0);
+  const target = event.state?.prayerView || 'home';
+  activeCategory = event.state?.activeCategory || null;
+  activePrayerId = event.state?.activePrayerId || null;
+  activeCommunionMode = event.state?.activeCommunionMode || activeCommunionMode;
+  previousView = event.state?.previousView || previousView;
+  render(target);
+  restoreViewScroll(target);
+});
 document.addEventListener('keydown', (e) => {
-  if (!reader && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchQuery = ''; render('search'); }
+  if (!reader && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchQuery = ''; navigateTo('search', { restore:false }); }
   if (!reader) return;
   if (e.key === 'ArrowRight') nextReader();
   if (e.key === 'ArrowLeft') prevReader();

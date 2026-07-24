@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="src/styles.css?v=24.0.0" />
+  <link rel="stylesheet" href="src/styles.css?v=25.0.0" />
 </head>
 <body>
   <div class="ambient-field" aria-hidden="true">
@@ -24,7 +24,7 @@
         <span aria-hidden="true">✦</span>
         <strong>Prayer Companion</strong>
       </button>
-      <button class="menu-button" type="button" data-open-menu aria-label="Open prayer book menu"><i></i><i></i></button>
+      <button class="menu-button" type="button" data-open-menu aria-label="More options"><i></i><i></i></button>
     </header>
     <section class="screen" id="screen" aria-live="polite">
       <div class="loading-panel">
@@ -35,26 +35,45 @@
 
   </main>
 
-  <aside class="sheet" id="quick-sheet" aria-hidden="true" aria-label="Prayer book menu">
+  <nav class="tab-dock" id="tab-dock" aria-label="Primary navigation">
+    <button type="button" data-nav="home" data-tab="home" aria-label="Today">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.4 12 4l7.5 6.4v8.1a1.5 1.5 0 0 1-1.5 1.5H6a1.5 1.5 0 0 1-1.5-1.5Z"></path><path d="M9.4 20v-5.8h5.2V20"></path></svg>
+      <span>Today</span>
+    </button>
+    <button type="button" data-nav="library" data-tab="library" aria-label="Library">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h10.5A2.5 2.5 0 0 1 18 7v12H7.5A2.5 2.5 0 0 1 5 16.5Z"></path><path d="M7.5 19A2.5 2.5 0 0 1 5 16.5 2.5 2.5 0 0 1 7.5 14H18"></path></svg>
+      <span>Library</span>
+    </button>
+    <button class="tab-companion" type="button" data-open-companion data-tab="companion" aria-label="Prayer Companion">
+      <span class="tab-companion-orb" aria-hidden="true">✦</span>
+      <span>Companion</span>
+    </button>
+    <button type="button" data-nav="search" data-tab="search" aria-label="Search prayers">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.7" cy="10.7" r="5.7"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg>
+      <span>Search</span>
+    </button>
+    <button type="button" data-nav="settings" data-tab="settings" aria-label="Settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M8 14v6M16 4v6"></path></svg>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <aside class="sheet" id="quick-sheet" aria-hidden="true" aria-label="More prayer options">
     <button class="sheet-backdrop" type="button" data-close-sheet></button>
     <div class="sheet-panel">
       <div class="sheet-handle"></div>
       <div class="sheet-head">
         <div>
           <p class="micro-label">Prayer Companion</p>
-          <h2>Your prayer book</h2>
+          <h2>More</h2>
         </div>
         <button class="round-control" type="button" data-close-sheet aria-label="Close menu">×</button>
       </div>
-      <nav class="menu-list" aria-label="Prayer book destinations">
-        <button type="button" data-nav="home"><span>Current prayer</span><em>Return to today’s guided session</em></button>
+      <nav class="menu-list" aria-label="Additional prayer destinations">
         <button type="button" data-nav="daily"><span>Today in the Church</span><em>Saints, feasts, and appointed readings</em></button>
-        <button type="button" data-nav="library"><span>Prayer library</span><em>Browse the complete prayer book</em></button>
-        <button type="button" data-nav="search"><span>Find a prayer</span><em>Search by need, word, or occasion</em></button>
-        <button type="button" data-open-companion><span>Prayer Companion <b class="ai-menu-mark">✦ AI</b></span><em>Reflect, find words, and understand prayers</em></button>
         <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Preparation prayers</em></button>
         <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving prayers</em></button>
-        <button type="button" data-nav="settings"><span>Settings & intercessions</span><em>Reading comfort and remembered names</em></button>
+        <button type="button" data-nav="settings"><span>Personal intercessions</span><em>Remembered names stored on this device</em></button>
       </nav>
       <p class="menu-section-label">Quick prayers</p>
       <div class="quick-list" id="quick-list"></div>
@@ -67,8 +86,8 @@
   </aside>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="src/session-time.js?v=24.0.0" defer></script>
-  <script src="src/app.js?v=24.0.0" defer></script>
-  <script src="src/extra-prayers.js?v=24.0.0" defer></script>
+  <script src="src/session-time.js?v=25.0.0" defer></script>
+  <script src="src/app.js?v=25.0.0" defer></script>
+  <script src="src/extra-prayers.js?v=25.0.0" defer></script>
 </body>
 </html>
