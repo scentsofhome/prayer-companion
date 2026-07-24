@@ -7,8 +7,9 @@
   <meta name="description" content="A premium Orthodox prayer rule PWA with guided prayer, centered Spotlight search, offline access, and a native-app-style interface." />
   <meta name="theme-color" content="#17110f" />
   <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-  <link rel="stylesheet" href="src/styles.css?v=23.0.0" />
+  <link rel="stylesheet" href="src/styles.css?v=24.0.0" />
 </head>
 <body>
   <div class="ambient-field" aria-hidden="true">
@@ -50,6 +51,7 @@
         <button type="button" data-nav="daily"><span>Today in the Church</span><em>Saints, feasts, and appointed readings</em></button>
         <button type="button" data-nav="library"><span>Prayer library</span><em>Browse the complete prayer book</em></button>
         <button type="button" data-nav="search"><span>Find a prayer</span><em>Search by need, word, or occasion</em></button>
+        <button type="button" data-open-companion><span>Prayer Companion <b class="ai-menu-mark">✦ AI</b></span><em>Reflect, find words, and understand prayers</em></button>
         <button type="button" data-open-communion="preparation"><span>Before Communion</span><em>Preparation prayers</em></button>
         <button type="button" data-open-communion="thanksgiving"><span>After Communion</span><em>Thanksgiving prayers</em></button>
         <button type="button" data-nav="settings"><span>Settings & intercessions</span><em>Reading comfort and remembered names</em></button>
@@ -65,8 +67,8 @@
   </aside>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="src/session-time.js?v=23.0.0" defer></script>
-  <script src="src/app.js?v=23.0.0" defer></script>
-  <script src="src/extra-prayers.js?v=23.0.0" defer></script>
+  <script src="src/session-time.js?v=24.0.0" defer></script>
+  <script src="src/app.js?v=24.0.0" defer></script>
+  <script src="src/extra-prayers.js?v=24.0.0" defer></script>
 </body>
 </html>
