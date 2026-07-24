@@ -1,12 +1,12 @@
-const CACHE_NAME = 'orthodox-prayer-book-v39-smoother-companion';
+const CACHE_NAME = 'orthodox-prayer-book-v40-apple-navigation';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './src/styles.css?v=24.0.0',
-  './src/session-time.js?v=24.0.0',
-  './src/app.js?v=24.0.0',
-  './src/extra-prayers.js?v=24.0.0',
+  './src/styles.css?v=25.0.0',
+  './src/session-time.js?v=25.0.0',
+  './src/app.js?v=25.0.0',
+  './src/extra-prayers.js?v=25.0.0',
   './data/prayers.json',
   './data/public-domain-prayers.json',
   './data/prayer-rules.json',
