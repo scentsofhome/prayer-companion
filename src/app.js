@@ -1,4 +1,4 @@
-const VERSION = 'v25.0.0-apple-navigation';
+const VERSION = 'v26.0.0-offline-prayer';
 function storageBundle(version) {
   return {
     state: `prayerRule.${version}.state`,
@@ -173,7 +173,7 @@ let plannerMode = state.plannerMode || 'balanced';
 let activePreset = state.activePreset || 'custom';
 let favorites = new Set(storedJSON('favorites', []) || []);
 let personal = Object.assign({living:[], sick:[], departed:[], traveling:[], family:[]}, storedJSON('personal', {}) || {});
-let appearance = Object.assign({theme: 'dark', clarity: 17, frost: 22, reflection: 36, scale: 1, leading: 1.72, width: 720}, storedJSON('appearance', {}) || {});
+let appearance = Object.assign({theme: 'system', clarity: 17, frost: 22, reflection: 36, scale: 1, leading: 1.72, width: 720}, storedJSON('appearance', {}) || {});
 let prayerHistory = storedJSON('history', {}) || {};
 let recentPrayerIds = storedJSON('recent', []) || [];
 let readingPositions = storedJSON('positions', {}) || {};
@@ -186,14 +186,14 @@ let sessionMoment = window.PrayerSessionTime?.forDate(new Date()) || { day:dayNa
 
 function safeJSON(raw, fallback = null) { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
 function storedJSON(kind, fallback = null) {
-  const current = safeJSON(localStorage.getItem(STORAGE[kind]), undefined);
-  if (current !== undefined) return current;
-  const legacy = safeJSON(localStorage.getItem(LEGACY_STORAGE[kind]), undefined);
-  if (legacy !== undefined) return legacy;
-  const older = safeJSON(localStorage.getItem(OLDER_STORAGE[kind]), undefined);
-  if (older !== undefined) return older;
-  return safeJSON(localStorage.getItem(OLDEST_STORAGE[kind]), fallback);
+  for (const bundle of [STORAGE, LEGACY_STORAGE, OLDER_STORAGE, OLDEST_STORAGE]) {
+    const raw = localStorage.getItem(bundle[kind]);
+    if (raw === null) continue;
+    try { return JSON.parse(raw); } catch { /* Try the previous format. */ }
+  }
+  return fallback;
 }
+
 function esc(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function inlineMarkdown(value) {
   return esc(value)
@@ -259,8 +259,8 @@ function saveReaderProgress() {
     return;
   }
   if (reader?.kind !== 'rule') return;
-  if (reader.index <= 0 && (Number(reader.position)||0) < .04) { clearSavedReader(); return; }
-  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, duration:ruleDuration, season: seasonMode, communion: communionMode, plannerMode, index: reader.index, position:Number(reader.position)||0, savedAt: Date.now() }));
+
+  localStorage.setItem(STORAGE.reader, JSON.stringify({ day: selectedDay, office: selectedOffice, length: ruleLength, duration:ruleDuration, season: seasonMode, communion: communionMode, plannerMode, date:liturgicalDateKey(), steps:reader.steps, index: reader.index, position:Number(reader.position)||0, savedAt: Date.now() }));
 }
 function getSavedReader() { return safeJSON(localStorage.getItem(STORAGE.reader), safeJSON(localStorage.getItem(LEGACY_STORAGE.reader), safeJSON(localStorage.getItem(OLDER_STORAGE.reader), safeJSON(localStorage.getItem(OLDEST_STORAGE.reader), null)))); }
 function clearSavedReader() { [STORAGE.reader, LEGACY_STORAGE.reader, OLDER_STORAGE.reader, OLDEST_STORAGE.reader].forEach(key => localStorage.removeItem(key)); }
@@ -271,19 +271,15 @@ function savedReaderForCurrentRule(steps = currentSteps()) {
   const savedAt = Number(saved.savedAt || 0);
   const matchesRule = saved.day === selectedDay && saved.office === selectedOffice && saved.length === ruleLength && Number(saved.duration || ruleDuration) === ruleDuration && saved.season === seasonMode && saved.communion === communionMode && (saved.plannerMode || 'balanced') === plannerMode;
   const freshEnough = savedAt && (Date.now() - savedAt) < 1000 * 60 * 60 * 24 * 21;
-  if (!matchesRule || !freshEnough || !Number.isFinite(index) || index <= 0 || index >= steps.length) return null;
+  if ((saved.date && saved.date !== liturgicalDateKey()) || !matchesRule || !freshEnough || !Number.isFinite(index) || index < 0 || index >= (saved.steps?.length || steps.length)) return null;
   return { ...saved, index };
 }
 
 function applyAppearance() {
   const root = document.documentElement;
-  root.dataset.theme = appearance.theme === 'light' ? 'light' : 'dark';
+  root.dataset.theme = appearance.theme === 'system' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : appearance.theme;
   root.dataset.season = seasonMode;
-  root.style.setProperty('--glass-alpha', (appearance.clarity / 100).toFixed(2));
-  root.style.setProperty('--glass-soft-alpha', Math.max(0.04, appearance.clarity / 220).toFixed(2));
-  root.style.setProperty('--glass-alpha-boost', Math.min(0.92, appearance.clarity / 100 + 0.08).toFixed(2));
-  root.style.setProperty('--glass-blur', `${appearance.frost}px`);
-  root.style.setProperty('--shine-alpha', (appearance.reflection / 100).toFixed(2));
+  document.querySelector('meta[name="theme-color"]').content = root.dataset.theme === 'dark' ? '#191919' : '#f6f3ed';
   root.style.setProperty('--reader-scale', appearance.scale.toFixed(2));
   root.style.setProperty('--reader-leading', appearance.leading.toFixed(2));
   root.style.setProperty('--reader-width', `${appearance.width}px`);
@@ -295,6 +291,7 @@ async function init() {
   selectedDay = sessionMoment.day;
   selectedOffice = sessionMoment.office;
   applyAppearance();
+  window.PrayerOffline.start();
   try {
     const [p, r, publicDomain] = await Promise.all([
       fetch('data/prayers.json').then(x => x.json()),
@@ -304,6 +301,8 @@ async function init() {
     const existingIds = new Set(p.prayers.map(item => item.id));
     const additions = arrayValue(publicDomain.prayers).filter(item => item?.id && !existingIds.has(item.id));
     p.prayers.push(...additions);
+    const psalmLines = await Promise.all(Array.from({length:17}, (_,i) => fetch(`data/psalm-50-51/${String(i+1).padStart(2,'0')}.txt`).then(r => { if (!r.ok) throw new Error('Psalm download incomplete'); return r.text(); })));
+    if (!existingIds.has('a-psalm-of-repentance-psalm-50-51')) p.prayers.push({id:'a-psalm-of-repentance-psalm-50-51', title:'A Psalm of Repentance (Psalm 50/51)', category:'Rule of Prayer', type:'prayer', tags:['psalm','repentance'], text:psalmLines.map(t => t.trim()).filter(Boolean)});
     prayersData = p;
     rulesData = r;
     allPrayers = p.prayers.filter(item => item.type === 'prayer');
@@ -312,22 +311,15 @@ async function init() {
     renderQuickSheet();
     render('home');
     loadDailyCalendar();
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (sessionStorage.getItem('prayerRule.swReloaded.v25')) return;
-        sessionStorage.setItem('prayerRule.swReloaded.v25', '1');
-        location.reload();
-      });
-      navigator.serviceWorker.register('./service-worker.js?v=25.0.0').then(registration => registration.update()).catch(() => {});
-    }
   } catch (err) {
     console.error(err);
-    screen.innerHTML = `<div class="view"><div class="quiet-card"><h3>Prayer data could not load</h3><p>Make sure the data folder, src folder, and index.html were uploaded together to GitHub Pages.</p></div></div>`;
+    screen.innerHTML = `<div class="view"><div class="quiet-card"><h3>Prayer data could not load</h3><p>Connect to the internet to finish downloading your prayer book, then try again.</p><button class="primary-button" type="button" data-reload-app>Try again</button></div></div>`;
   }
 }
 
 function updateDailyView() {
   if (reader || !['home', 'daily'].includes(currentView)) return;
+  if (currentView === 'home') { const glance = $('daily-glance'); if (glance) glance.innerHTML = renderDailyGlance(); return; }
   const scrollTop = screen.scrollTop;
   render(currentView);
   requestAnimationFrame(() => { screen.scrollTop = scrollTop; });
@@ -341,6 +333,7 @@ async function loadDailyCalendar(force = false) {
     dailyCalendarLoading = false;
     dailyCalendarError = '';
     updateDailyView();
+    return;
   } else if (!dailyCalendar || dailyCalendar.date !== date) {
     dailyCalendar = null;
     dailyCalendarLoading = true;
@@ -348,6 +341,7 @@ async function loadDailyCalendar(force = false) {
     updateDailyView();
   }
 
+  if (!navigator.onLine) { dailyCalendarLoading = false; dailyCalendarError = 'Connect to download today’s calendar. Your prayer book is available offline.'; updateDailyView(); return; }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 9000);
   try {
@@ -593,9 +587,10 @@ function stepsFromSegments(segments) {
   segments.closing.forEach(id => prayer(id) && steps.push({ type:'prayer', id, section:'Closing' }));
   return steps;
 }
+function sessionIsCurrent(custom) { return custom && custom.day === selectedDay && custom.office === selectedOffice && (!custom.date || custom.date === liturgicalDateKey()); }
 function applySessionTailoring(baseSteps) {
   const custom = sessionCustomization;
-  if (!custom || custom.day !== selectedDay || custom.office !== selectedOffice) return baseSteps;
+  if (!sessionIsCurrent(custom)) return baseSteps;
   const removed = new Set(arrayValue(custom.removeIds));
   let steps = baseSteps.filter(step => step.type !== 'prayer' || ['Opening','Closing'].includes(step.section) || !removed.has(step.id));
   const existing = new Set(steps.filter(step => step.type === 'prayer').map(step => step.id));
@@ -633,8 +628,10 @@ function applySessionTailoring(baseSteps) {
   return steps;
 }
 function currentSteps() {
-  const custom = sessionCustomization && sessionCustomization.day === selectedDay && sessionCustomization.office === selectedOffice ? sessionCustomization : null;
-  if (!custom?.minutes) return stepsFromSegments(buildRuleSegments());
+  const saved = savedReaderForCurrentRule([]);
+  if (saved?.steps?.length && saved.steps.every(step => step.type !== 'prayer' || prayer(step.id))) return saved.steps;
+  const custom = sessionIsCurrent(sessionCustomization) ? sessionCustomization : null;
+  if (!custom?.minutes) return applySessionTailoring(stepsFromSegments(buildRuleSegments()));
   const previousDuration = ruleDuration;
   const previousLength = ruleLength;
   ruleDuration = clamp(Number(custom.minutes) || previousDuration, 3, 45);
@@ -757,14 +754,14 @@ function shouldAutofocusSearch() {
 function primaryTabForView(view) {
   if (view === 'home' || view === 'daily') return 'home';
   if (view === 'settings') return 'settings';
-  if (view === 'search') return 'search';
+  if (view === 'search' || view === 'communion') return 'library';
   if (view === 'library' || view === 'category') return 'library';
-  if (view === 'prayer') return previousView === 'search' ? 'search' : 'library';
+  if (view === 'prayer') return 'library';
   return '';
 }
 function syncPrimaryNavigation() {
   if (!tabDock) return;
-  const active = assistantOpen ? 'companion' : primaryTabForView(currentView);
+  const active = primaryTabForView(currentView);
   tabDock.querySelectorAll('[data-tab]').forEach(button => {
     const selected = button.dataset.tab === active;
     button.classList.toggle('active', selected);
@@ -858,7 +855,7 @@ function dailyReadingCard(reading, index) {
 
 function renderDailyCalendar() {
   if (dailyCalendarLoading && !dailyCalendar) return `<div class="view daily-view"><button class="text-button back-button" type="button" data-nav="home">← Current prayer</button><div class="daily-loading glass"><div class="loading-orb"></div><p>Gathering today’s commemorations…</p></div></div>`;
-  if (!dailyCalendar) return `<div class="view daily-view"><button class="text-button back-button" type="button" data-nav="home">← Current prayer</button><section class="daily-empty glass"><p class="micro-label">Today in the Church</p><h1>The calendar is quiet for a moment.</h1><p>${esc(dailyCalendarError || 'The GOARCH daily source could not be reached.')}</p><button class="primary-button" type="button" data-retry-daily>Try again</button></section></div>`;
+  if (!dailyCalendar) return `<div class="view daily-view"><button class="text-button back-button" type="button" data-nav="home">← Current prayer</button><section class="daily-empty glass"><p class="micro-label">Today in the Church</p><h1>Today’s calendar is unavailable</h1><p>${esc(dailyCalendarError || 'The GOARCH daily source could not be reached.')}</p><button class="primary-button" type="button" data-retry-daily>Try again</button></section></div>`;
 
   const data = dailyCalendar;
   const source = safeLink(data.source?.url);
@@ -887,34 +884,29 @@ function renderHome() {
   const segments = buildRuleSegments();
   const steps = currentSteps();
   const saved = savedReaderForCurrentRule(steps);
-  const hasResume = !!saved;
-  const adjusted = sessionCustomization && sessionCustomization.day === selectedDay && sessionCustomization.office === selectedOffice;
-  const completed = sessionCompletion && sessionCompletion.day === selectedDay && sessionCompletion.office === selectedOffice;
-  const progressText = completed ? 'Prayer completed' : hasResume ? `Continue at ${stepLabel(steps[saved.index])}` : `${steps.length} prayers · about ${ruleMinutes(steps)} minutes`;
-  const preview = steps.slice(0, 4).map((step, index) => `<li><span>${String(index + 1).padStart(2,'0')}</span><strong>${esc(stepLabel(step))}</strong></li>`).join('');
-  const lateNightNote = sessionMoment.lateNight ? '<span class="late-night-note">After midnight · continuing the previous evening</span>' : '';
+  const completed = sessionCompletion?.day === selectedDay && sessionCompletion?.office === selectedOffice && sessionCompletion?.date === liturgicalDateKey();
+  const adjusted = sessionIsCurrent(sessionCustomization);
   return `<div class="view home-page">
-    <header class="session-welcome"><p class="micro-label">${esc(sessionMoment.greeting)}</p><h1>${esc(sessionMoment.dateLabel)}</h1>${lateNightNote}</header>
-    <section class="current-session glass" aria-label="Current prayer session">
-      <div class="session-orb" aria-hidden="true"><span>✦</span></div>
-      <div class="session-copy">
-        <div class="session-kicker"><span>${esc(segments.seasonTitle)}</span><i></i><span>${esc(segments.cycleTitle)}</span></div>
-        <h2>${esc(selectedOffice)}<br>Prayer</h2>
-        <p>${esc(segments.theme || 'A quiet beginning for this prayer rule.')}</p>
-        ${completed ? '<div class="completion-badge"><span>✓ Prayer complete</span><strong>May the peace of this prayer remain with you.</strong></div>' : ''}
-        ${adjusted ? `<div class="tailored-badge"><span>✦ Tailored for this moment</span><strong>${esc(sessionCustomization.summary || sessionCustomization.intention || 'Your session has been adjusted.')}</strong><button type="button" data-reset-session>Restore the usual rule</button></div>` : ''}
-      </div>
-      <div class="session-path">
-        <div class="session-path-head"><div><p class="micro-label">Your path</p><strong>${esc(progressText)}</strong></div>${homeBeads(steps, saved?.index || 0, hasResume)}</div>
-        <ol>${preview}</ol>
-        ${steps.length > 4 ? `<details><summary>See all ${steps.length} prayers</summary><ol>${steps.map((step,index) => `<li><span>${String(index+1).padStart(2,'0')}</span><strong>${esc(stepLabel(step))}</strong></li>`).join('')}</ol></details>` : ''}
-        <button class="primary-button session-begin" type="button" ${hasResume ? 'data-resume-rule' : 'data-start-rule'}><span>${completed ? 'Pray again' : hasResume ? 'Continue prayer' : 'Begin this prayer'}</span><b aria-hidden="true">→</b></button>
-      </div>
+    <header class="session-welcome"><p class="micro-label">${esc(sessionMoment.dateLabel)}</p><h1>${esc(sessionMoment.greeting)}</h1>${sessionMoment.lateNight ? '<p class="late-night-note">Continuing the previous evening</p>' : ''}</header>
+    <section class="prayer-home" aria-label="Your prayer rule">
+      <div class="rule-heading"><span class="book-cross" aria-hidden="true">✠</span><div class="segment office-switch" aria-label="Time of prayer">${['Morning','Evening'].map(office => `<button type="button" data-office-set="${office}" aria-pressed="${selectedOffice === office}" class="${selectedOffice === office ? 'active' : ''}">${office}</button>`).join('')}</div></div>
+      <p class="micro-label">${esc(segments.seasonTitle)} · Daily rule</p>
+      <h2>${esc(selectedOffice)} prayer</h2>
+      <p class="rule-theme">${esc(segments.theme || 'A quiet beginning for prayer.')}</p>
+      <p class="rule-meta">${steps.length} steps <span aria-hidden="true">·</span> About ${ruleMinutes(steps)} minutes</p>
+      ${saved ? `<p class="resume-note">Continue with ${esc(stepLabel(steps[saved.index]))}</p>` : ''}
+      ${completed ? '<p class="completion-note">Prayer complete. May its peace remain with you.</p>' : ''}
+      <button class="primary-button session-begin" type="button" ${saved ? 'data-resume-rule' : 'data-start-rule'}>${saved ? 'Continue prayer' : completed ? 'Pray again' : 'Begin prayer'}<span aria-hidden="true">→</span></button>
+      <div class="rule-secondary"><details class="rule-sequence"><summary>View prayer rule</summary><ol>${steps.map(step => `<li>${esc(stepLabel(step))}</li>`).join('')}</ol></details><button class="text-button" type="button" data-nav="settings">Adjust rule</button></div>
+      ${adjusted ? `<p class="tailoring-note">${esc(sessionCustomization.summary || 'Adjusted for this session')} <button class="text-button" type="button" data-reset-session>Reset</button></p>` : ''}
     </section>
-    ${renderDailyGlance()}
-    ${renderSessionGuide()}
+    <p class="offline-caption" data-offline-label role="status">${esc(window.PrayerOffline.label())}</p>
+    <div class="home-links"><button type="button" data-nav="search"><strong>Find a prayer</strong><span>By word, need, or occasion</span></button><button type="button" data-nav="settings" data-show-names><strong>Remembered names</strong><span>People in your prayers</span></button></div>
+    <div id="daily-glance">${renderDailyGlance()}</div>
+    <details class="optional-guidance" ${companionPlacement === 'home' && companionMessages.length ? 'open' : ''}><summary>Help with this prayer rule <span>Optional guidance</span></summary>${renderSessionGuide()}</details>
   </div>`;
 }
+
 function renderCompanion() {
   const feature = companionFeatures[companionFeature] || companionFeatures.reflect;
   const featureTabs = Object.entries(companionFeatures).map(([id, item]) => `<button class="${id === companionFeature ? 'active' : ''}" type="button" data-companion-feature="${id}" aria-pressed="${id === companionFeature}">${esc(item.label)}</button>`).join('');
@@ -922,7 +914,7 @@ function renderCompanion() {
   const welcome = `<div class="companion-welcome"><span class="companion-mark" aria-hidden="true">✦</span><p class="micro-label">${esc(feature.eyebrow)}</p><h2>${esc(feature.title)}</h2><p>${esc(feature.description)}</p><div class="companion-prompts">${prompts}</div></div>`;
   const transcript = companionMessages.length ? companionMessages.map(message => `<article class="companion-message ${message.role === 'user' ? 'from-user' : 'from-companion'}"><p>${esc(message.text)}</p></article>`).join('') : welcome;
   const contextBanner = companionContextLabel ? `<div class="companion-context"><span>Using app context</span><strong>${esc(companionContextLabel)}</strong><button type="button" data-clear-companion-context aria-label="Remove app context">×</button></div>` : '';
-  return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">AI prayer tools</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><nav class="companion-feature-tabs" aria-label="Choose an AI tool">${featureTabs}</nav>${contextBanner}<div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="${esc(feature.title)}" ${companionSending ? 'disabled' : ''}>${esc(companionDraft)}</textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">AI can make mistakes. Not clergy, therapy, or emergency support. Avoid sensitive personal details. Chats are not saved by this app.</p></section></div>`;
+  return `<div class="view companion-view"><section class="companion-card"><header class="companion-head"><div><p class="micro-label">Optional online guidance</p><h1>Prayer Companion</h1></div>${companionMessages.length ? '<button class="secondary-button companion-new" type="button" data-clear-companion>New</button>' : ''}</header><nav class="companion-feature-tabs" aria-label="Choose an AI tool">${featureTabs}</nav>${contextBanner}<div class="companion-transcript" id="companion-transcript" aria-live="polite">${transcript}${companionSending ? '<div class="companion-thinking">Listening…</div>' : ''}</div><form class="companion-compose" id="companion-form"><label class="sr-only" for="companion-input">Your message</label><textarea id="companion-input" maxlength="1200" rows="1" placeholder="${esc(feature.title)}" ${companionSending ? 'disabled' : ''}>${esc(companionDraft)}</textarea><button class="primary-button" type="submit" aria-label="Send message" ${companionSending ? 'disabled' : ''}>Send</button></form><p class="companion-note">AI can make mistakes. Not clergy, therapy, or emergency support. Avoid sensitive personal details. Chats are not saved by this app.</p></section></div>`;
 }
 function renderAssistantPanel() {
   if (!assistantPanel || !assistantContent) return;
@@ -958,6 +950,7 @@ function openCompanionFeature(feature, options = {}) {
 async function sendCompanionMessage(text) {
   const message = String(text || '').trim();
   if (!message || companionSending) return;
+  if (!navigator.onLine) { showToast('Online guidance needs an internet connection. Prayer search works offline.'); return; }
   companionDraft = '';
   companionMessages.push({ role: 'user', text: message });
   companionSending = true;
@@ -1059,6 +1052,7 @@ function applySessionUpdate(raw, message, candidates) {
   const minutes = clamp(Number(raw?.minutes) || requestedMinutes(message) || ruleDuration, 3, 45);
   const validIds = key => arrayValue(raw?.[key]).filter(id => allowed.has(id) && prayer(id)).slice(0, 8);
   sessionCustomization = {
+    date: liturgicalDateKey(),
     day: selectedDay,
     office: selectedOffice,
     minutes,
@@ -1079,8 +1073,9 @@ function applySessionUpdate(raw, message, candidates) {
 function addPrayerToSession(id) {
   const selected = prayer(id);
   if (!selected) return;
-  const current = sessionCustomization?.day === selectedDay && sessionCustomization?.office === selectedOffice ? sessionCustomization : {};
+  const current = sessionIsCurrent(sessionCustomization) ? sessionCustomization : {};
   sessionCustomization = {
+    date: liturgicalDateKey(),
     day: selectedDay,
     office: selectedOffice,
     minutes: Number(current.minutes) || ruleDuration,
@@ -1123,6 +1118,7 @@ async function sendSessionMessage(text) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
+    if (!navigator.onLine) throw new Error('Offline');
     const history = companionMessages.slice(-7, -1);
     const response = await fetch(COMPANION_ENDPOINT, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ messages:[...history, { role:'user', text:planningPrompt }], feature:'rule', context }), signal:controller.signal });
     const data = await response.json().catch(() => ({}));
@@ -1166,7 +1162,7 @@ function renderLibrary() {
   const counts = new Map();
   allPrayers.forEach(p => counts.set(p.category, (counts.get(p.category) || 0) + 1));
   const shelves = categories.filter(c => counts.has(c.title)).map(c => `<button class="shelf" type="button" data-category="${esc(c.title)}"><small>${counts.get(c.title)} prayers</small><div><h3>${esc(c.title)}</h3><p>${categoryDescription(c.title)}</p></div></button>`).join('');
-  return `<div class="view library-view"><header class="page-header library-header"><div><p class="micro-label">Prayer library · ${allPrayers.length} prayers</p><h1 class="page-title">Find the words<br>you need.</h1><p class="subtitle">Traditional prayers, organized by the moment and purpose they serve.</p></div><button class="library-find" type="button" data-nav="search"><span aria-hidden="true">⌕</span><strong>Search by need</strong><small>Try “new home,” “healing,” or “travel.”</small></button></header><div class="shelf-grid">${shelves}</div><section class="favorites-section"><div class="section-heading"><div><p class="micro-label">Favorites</p><h2>${favorites.size ? `${favorites.size} saved prayers` : 'Keep prayers close'}</h2></div></div><p>${favorites.size ? 'Your saved prayers, ready when you need them.' : 'Favorite any prayer and it will appear here.'}</p><div class="list-panel">${renderFavoriteRows()}</div></section></div>`;
+  return `<div class="view library-view"><header class="page-header library-header"><div><p class="micro-label">Prayer library · ${allPrayers.length} prayers</p><h1 class="page-title">Prayer Library</h1><p class="subtitle">Traditional prayers, organized by the moment and purpose they serve.</p></div><button class="library-find" type="button" data-nav="search"><span aria-hidden="true">⌕</span><strong>Search by need</strong><small>Try “new home,” “healing,” or “travel.”</small></button></header><div class="library-communion"><button class="secondary-button" type="button" data-open-communion="preparation">Before Communion</button><button class="secondary-button" type="button" data-open-communion="thanksgiving">After Communion</button></div><div class="shelf-grid">${shelves}</div><section class="favorites-section"><div class="section-heading"><div><p class="micro-label">Favorites</p><h2>${favorites.size ? `${favorites.size} saved prayers` : 'Keep prayers close'}</h2></div></div><p>${favorites.size ? 'Your saved prayers, ready when you need them.' : 'Favorite any prayer and it will appear here.'}</p><div class="list-panel">${renderFavoriteRows()}</div></section></div>`;
 }
 function categoryDescription(cat) {
   if (/Rule/.test(cat)) return 'Opening prayers, Creed, closing prayers, and core rule texts.';
@@ -1193,7 +1189,7 @@ function prayerRow(p) {
 function renderSearch() {
   return `<div class="view prayer-guide"><section class="prayer-guide-panel" aria-label="Find a prayer">
     <p class="micro-label">Prayer library</p>
-    <h1 class="page-title">Find a prayer.</h1>
+    <h1 class="page-title">Find a prayer</h1>
     <p class="subtitle">Search the prayer book by a word, need, or occasion. This search stays entirely on your device.</p>
     <label class="search-box glass prayer-guide-search"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="5.8"></circle><path d="m15.1 15.1 4.4 4.4"></path></svg><input id="search-field" value="${esc(searchQuery)}" placeholder="For example: I’m worried about my exam…" autocomplete="off" inputmode="search" enterkeyhint="search" autocapitalize="sentences"></label>
     <div id="guide-results">${guideResultsHTML(searchQuery)}</div>
@@ -1217,7 +1213,7 @@ function renderPrayerDetail(id) {
   const sourceUrl = safeLink(p.sourceUrl);
   const provenance = p.sourceNote || (p.source === 'Jordanville Prayer Book' ? 'OCR-cleaned import; source comparison is still recommended for critical use.' : 'Curated app library text.');
   const sourceLink = sourceUrl ? `<a class="prayer-source-link" href="${esc(sourceUrl)}" target="_blank" rel="noopener noreferrer">View source ↗</a>` : '';
-  return `<div class="view prayer-detail-view"><button class="text-button back-button" type="button" data-back>← Back</button><header class="prayer-detail-header"><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span>${p.rights ? `<span class="stat-pill">${esc(p.rights)}</span>` : ''}</div></header><div class="prayer-detail-actions"><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action} prayer <span aria-hidden="true">→</span></button><button class="secondary-button" type="button" data-add-to-session="${esc(p.id)}">＋ Add to today</button><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button></div><div class="prayer-detail-layout"><aside><section class="prayer-ai-tools"><div><p class="micro-label">AI prayer tools</p><h3>Go deeper</h3></div><div><button type="button" data-ai-explain="${esc(p.id)}"><span>✦ Explain</span><em>Words, images, and themes</em></button><button type="button" data-ai-reflect-prayer="${esc(p.id)}"><span>✦ Reflect</span><em>Bring it into today</em></button></div></section><p class="prayer-provenance">${esc(provenance)} ${sourceLink}</p></aside><article class="reader-text prayer-detail-text">${prayerTextHTML(p)}</article></div></div>`;
+  return `<div class="view prayer-detail-view"><button class="text-button back-button" type="button" data-back>← Back</button><header class="prayer-detail-header"><p class="micro-label">${esc(p.category)}</p><h1 class="page-title">${esc(p.title)}</h1><div class="stat-row"><span class="stat-pill">${esc(p.source || 'Prayer Library')}</span><span class="stat-pill">About ${Math.max(.5, estimatedMinutesForPrayer(p)).toFixed(estimatedMinutesForPrayer(p) < 1 ? 1 : 0)} min</span>${p.rights ? `<span class="stat-pill">${esc(p.rights)}</span>` : ''}</div></header><div class="prayer-detail-actions"><button class="primary-button" type="button" data-read-single="${esc(p.id)}">${action} prayer <span aria-hidden="true">→</span></button><button class="secondary-button" type="button" data-add-to-session="${esc(p.id)}">＋ Add to today</button><button class="secondary-button" type="button" data-fav="${esc(p.id)}">${fav ? '★ Favorited' : '☆ Favorite'}</button><button class="secondary-button" type="button" data-copy="${esc(p.id)}">Copy</button><button class="secondary-button" type="button" data-share="${esc(p.id)}">Share</button></div><div class="prayer-detail-layout"><aside><section class="prayer-ai-tools"><div><p class="micro-label">Optional online guidance</p><h3>Go deeper</h3></div><div><button type="button" data-ai-explain="${esc(p.id)}"><span>✦ Explain</span><em>Words, images, and themes</em></button><button type="button" data-ai-reflect-prayer="${esc(p.id)}"><span>✦ Reflect</span><em>Bring it into today</em></button></div></section><p class="prayer-provenance">${esc(provenance)} ${sourceLink}</p></aside><article class="reader-text prayer-detail-text">${prayerTextHTML(p)}</article></div></div>`;
 }
 function communionVariantIds(mode, variant) {
   const ids = (rulesData?.communionModes?.[mode]?.ids || []).filter(id => prayer(id));
@@ -1239,8 +1235,8 @@ function renderSettings() {
   const plannerOptions = Object.entries(plannerModes()).map(([id, mode]) => `<option value="${esc(id)}">${esc(mode.label || id)}</option>`).join('');
   return `<div class="view settings-clean">
     <p class="micro-label">Settings</p>
-    <h1 class="page-title">A quieter place.</h1>
-    <p class="subtitle">Set the usual shape of prayer and the reading atmosphere. The Companion can still adapt any individual session.</p>
+    <h1 class="page-title">Settings</h1>
+    <p class="subtitle">Your daily rule, reading comfort, and saved prayer book.</p>
     <div class="settings-sections">
       <section class="quiet-card settings-section">
         <div class="settings-section-head"><div><p class="micro-label">Daily rule</p><h3>Prayer selection</h3></div></div>
@@ -1261,22 +1257,20 @@ function renderSettings() {
       <section class="quiet-card settings-section">
         <div class="settings-section-head"><div><p class="micro-label">Appearance</p><h3>Reading comfort</h3></div></div>
         <div class="settings-row">
-          <div><strong>Theme</strong><span>Choose dark or light appearance.</span></div>
-          <div class="segment compact-segment"><button type="button" data-theme-set="dark">Dark</button><button type="button" data-theme-set="light">Light</button></div>
+          <div><strong>Theme</strong><span>Follow your phone, or choose light or dark.</span></div>
+          <div class="segment compact-segment"><button type="button" data-theme-set="system">Auto</button><button type="button" data-theme-set="dark">Dark</button><button type="button" data-theme-set="light">Light</button></div>
         </div>
         <div class="settings-sliders">
-          ${range('clarity','Glass clarity',8,42,appearance.clarity)}
-          ${range('frost','Glass softness',8,42,appearance.frost)}
-          ${range('reflection','Light reflection',10,70,appearance.reflection)}
-          ${range('scale','Text size',86,138,Math.round(appearance.scale*100))}
+          ${range('scale','Text size',86,160,Math.round(appearance.scale*100))}
           ${range('leading','Line spacing',140,200,Math.round(appearance.leading*100))}
         </div>
       </section>
     </div>
     ${renderPersonalSettings()}
+    ${renderDeviceSettings()}
   </div>`;
 }
-function range(key,label,min,max,value){ return `<div class="range-row"><label><span>${label}</span><strong id="range-${key}">${value}</strong></label><input type="range" min="${min}" max="${max}" value="${value}" data-range="${key}"></div>`; }
+function range(key,label,min,max,value){ return `<div class="range-row"><label><span>${label}</span><strong id="range-${key}">${value}</strong></label><input type="range" aria-label="${esc(label)}" min="${min}" max="${max}" value="${value}" data-range="${key}"></div>`; }
 function renderPersonalSettings(){
   return `<section class="quiet-card personal-settings"><p class="micro-label">Personal Intercessions</p><h3>Names remembered in your rule</h3><p>Saved only on this device. Open a group to add or remove names.</p><div class="intention-groups">${Object.entries(personalLabels).map(([key,label]) => { const names=personal[key]||[]; return `<details class="intention-group" ${names.length ? 'open' : ''}><summary><span>${label}</span><em>${names.length ? `${names.length} saved` : 'None saved'}</em></summary><div class="intention-group-body"><div class="name-input-row"><input class="form-control" placeholder="Add a name" aria-label="Add a name to ${esc(label)}" data-name-input="${key}"><button class="icon-button" type="button" data-add-name="${key}" aria-label="Add name">+</button></div><div class="name-chip-list">${names.map((name,idx) => `<span class="name-chip">${esc(name)}<button type="button" data-remove-name="${key}" data-name-index="${idx}" aria-label="Remove ${esc(name)}">×</button></span>`).join('')}</div></div></details>`; }).join('')}</div></section>`;
 }
@@ -1292,7 +1286,7 @@ function renderQuickSheet() {
 function openSheet() { quickSheet.classList.add('open'); quickSheet.setAttribute('aria-hidden', 'false'); }
 function closeSheet() { quickSheet.classList.remove('open'); quickSheet.setAttribute('aria-hidden', 'true'); }
 
-function startRule(index = 0, position = 0) { sessionCompletion = null; saveCompletion(); const steps = currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)), position:clamp(Number(position)||0,0,1) }; openReader(); }
+function startRule(index = 0, position = 0) { sessionCompletion = null; saveCompletion(); const saved = savedReaderForCurrentRule(); const steps = saved?.steps?.length ? saved.steps : currentSteps(); reader = { kind:'rule', steps, index: clamp(index,0,Math.max(0,steps.length-1)), position:clamp(Number(position)||0,0,1) }; openReader(); }
 function startSinglePrayer(id) {
   rememberPrayer(id);
   reader = { kind:'single', steps: [{ type:'prayer', id, section:'Prayer' }], index: 0, position: Number(readingPositions[id] || 0) };
@@ -1327,7 +1321,8 @@ function renderReader() {
   const isLast = reader.index >= steps.length - 1;
   const content = renderReaderStep(step);
   screen.innerHTML = `<div class="reader-view">
-    <div class="reader-top"><button class="icon-button" type="button" data-close-reader>×</button><div class="reader-progress-wrap" role="progressbar" aria-label="Prayer progress" aria-valuemin="1" aria-valuemax="${steps.length}" aria-valuenow="${reader.index + 1}"><div class="reader-progress-track"><span style="width:${((reader.index + 1) / Math.max(1, steps.length)) * 100}%"></span></div><small>${reader.index + 1} of ${steps.length}</small></div><button class="icon-button" type="button" data-open-sheet>＋</button></div>
+    <div class="reader-top"><button class="icon-button" type="button" aria-label="Close prayer and save position" data-close-reader>×</button><div class="reader-progress-wrap" role="progressbar" aria-label="Prayer progress" aria-valuemin="1" aria-valuemax="${steps.length}" aria-valuenow="${reader.index + 1}"><div class="reader-progress-track"><span style="width:${((reader.index + 1) / Math.max(1, steps.length)) * 100}%"></span></div><small>${reader.index + 1} of ${steps.length}</small></div><button class="icon-button" type="button" data-reader-appearance aria-label="Reading appearance">Aa</button></div>
+    <div class="reader-appearance" id="reader-appearance" hidden>${range('scale','Text size',86,160,Math.round(appearance.scale*100))}<div class="segment">${['system','light','dark'].map(theme => `<button type="button" data-theme-set="${theme}" class="${appearance.theme === theme ? 'active' : ''}">${theme === 'system' ? 'Auto' : theme === 'light' ? 'Light' : 'Dark'}</button>`).join('')}</div></div>
     <div class="reader-stage" id="reader-stage">${content}</div>
     <div class="reader-foot"><button class="reader-control" type="button" data-reader-prev ${reader.index === 0 ? 'disabled' : ''}>Previous</button><div class="reader-count">${reader.index+1} / ${steps.length}</div><button class="reader-control ${isLast ? 'reader-done' : ''}" type="button" data-reader-next>${isLast ? 'Finish' : 'Next'}</button></div>
   </div>`;
@@ -1350,7 +1345,7 @@ function saveCurrentReadingPosition() {
   if (!stage) return;
   const max = Math.max(1, stage.scrollHeight - stage.clientHeight);
   const ratio = clamp(stage.scrollTop / max, 0, 1);
-  reader.position = ratio > .98 ? 0 : ratio;
+  reader.position = ratio;
   if (reader.kind === 'single') {
     const id = reader.steps?.[0]?.id;
     if (id) { readingPositions[id] = reader.position; localStorage.setItem(STORAGE.positions, JSON.stringify(readingPositions)); }
@@ -1391,7 +1386,7 @@ function completeRule() {
   if (reader?.kind === 'rule') {
     recordPrayerHistory(reader.steps);
     clearSavedReader();
-    sessionCompletion = { day:selectedDay, office:selectedOffice, completedAt:Date.now() };
+    sessionCompletion = { date:liturgicalDateKey(), day:selectedDay, office:selectedOffice, completedAt:Date.now() };
     saveCompletion();
     sessionCustomization = null;
     saveTailoring();
@@ -1411,11 +1406,8 @@ function completeRule() {
     closeReader(false);
   }
 }
-function resetIdle() {
-  document.body.classList.remove('ambient-mode');
-  clearTimeout(idleTimer);
-  if (reader) idleTimer = setTimeout(() => document.body.classList.add('ambient-mode'), 10000);
-}
+function resetIdle() { document.body.classList.remove('ambient-mode'); clearTimeout(idleTimer); }
+
 
 function prayerPlainText(id) { const p = prayer(id); return p ? `${p.title}\n\n${(p.text || []).join('\n\n')}` : ''; }
 async function copyPrayer(id) { try { await navigator.clipboard.writeText(prayerPlainText(id)); showToast('Prayer copied'); } catch { showToast('Copy unavailable'); } }
@@ -1440,10 +1432,12 @@ screen.addEventListener('input', (e) => {
     if (key === 'clarity') appearance.clarity = val;
     if (key === 'frost') appearance.frost = val;
     if (key === 'reflection') appearance.reflection = val;
+    if (reader && key === 'scale') saveCurrentReadingPosition();
     if (key === 'scale') appearance.scale = val / 100;
     if (key === 'leading') appearance.leading = val / 100;
     if (key === 'width') appearance.width = val;
     applyAppearance();
+    if (reader && key === 'scale') requestAnimationFrame(() => { const stage=$('reader-stage'); if (stage) stage.scrollTop = reader.position * Math.max(0, stage.scrollHeight-stage.clientHeight); });
   }
 });
 
@@ -1479,6 +1473,7 @@ screen.addEventListener('change', (e) => {
 document.addEventListener('click', async (e) => {
   const nav = e.target.closest('[data-nav]');
   if (nav) {
+    if (reader) closeReader();
     closeSheet();
     assistantOpen = false;
     document.body.classList.remove('assistant-open');
@@ -1489,6 +1484,7 @@ document.addEventListener('click', async (e) => {
     activeCategory = null;
     if (target === 'search') searchQuery = '';
     navigateTo(target, { restore:true });
+    if (nav.hasAttribute('data-show-names')) requestAnimationFrame(() => screen.querySelector('.personal-settings')?.scrollIntoView({block:'start'}));
     return;
   }
   if (e.target.closest('[data-open-sheet], [data-open-menu]')) { openSheet(); return; }
@@ -1557,7 +1553,7 @@ document.addEventListener('click', async (e) => {
   const cat = e.target.closest('[data-category]');
   if (cat) { activeCategory = cat.dataset.category; navigateTo('category', { restore:false }); return; }
   const openPrayer = e.target.closest('[data-open-prayer]');
-  if (openPrayer) { closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); navigateTo('prayer', { restore:false }); return; }
+  if (openPrayer) { if (reader) closeReader(); closeSheet(); previousView = currentView; previousScrollTop = screen.scrollTop; activePrayerId = openPrayer.dataset.openPrayer; rememberPrayer(activePrayerId); navigateTo('prayer', { restore:false }); return; }
   if (e.target.closest('[data-back]')) { navigateBack(previousView === 'category' && activeCategory ? 'category' : (previousView || 'library')); return; }
   if (e.target.closest('[data-start-rule]')) { startRule(0); return; }
   if (e.target.closest('[data-resume-rule]')) { const saved = savedReaderForCurrentRule(); startRule(saved?.index || 0, saved?.position || 0); return; }
@@ -1568,7 +1564,7 @@ document.addEventListener('click', async (e) => {
   const day = e.target.closest('[data-day-set]');
   if (day) { selectedDay = day.dataset.daySet; setCustomPreset(); saveState(); render('home'); return; }
   const communionPage = e.target.closest('[data-open-communion]');
-  if (communionPage) { closeSheet(); activeCommunionMode = communionPage.dataset.openCommunion; navigateTo('communion', { restore:false }); return; }
+  if (communionPage) { if (reader) closeReader(); closeSheet(); activeCommunionMode = communionPage.dataset.openCommunion; navigateTo('communion', { restore:false }); return; }
   const communion = e.target.closest('[data-start-communion]');
   if (communion) { startCommunionRule(communion.dataset.startCommunion, communion.dataset.communionVariant || 'full'); return; }
   const preset = e.target.closest('[data-rule-preset]');
@@ -1611,7 +1607,7 @@ document.addEventListener('submit', (e) => {
 
 ['mousemove','touchstart','keydown','scroll'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
+  if (document.visibilityState !== 'visible') { saveCurrentReadingPosition(); return; }
   if (reader) { requestWakeLock(); return; }
   const previousDate = liturgicalDateKey();
   const nextMoment = window.PrayerSessionTime?.forDate(new Date()) || sessionMoment;
@@ -1642,7 +1638,9 @@ window.addEventListener('popstate', (event) => {
 });
 document.addEventListener('keydown', (e) => {
   if (!reader && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); searchQuery = ''; navigateTo('search', { restore:false }); }
-  if (!reader) return;
+  if (e.key === 'Escape' && assistantOpen) { assistantOpen = false; renderAssistantPanel(); document.body.classList.remove('assistant-open'); return; }
+  if (e.key === 'Escape' && quickSheet.classList.contains('open')) { closeSheet(); return; }
+  if (!reader || e.target.closest('input,textarea,select')) return;
   if (e.key === 'ArrowRight') nextReader();
   if (e.key === 'ArrowLeft') prevReader();
   if (e.key === 'Escape') closeReader();
@@ -1652,6 +1650,7 @@ document.addEventListener('touchend', (e) => {
   if (!reader) return;
   const dx = e.changedTouches[0].screenX - touchStartX;
   const dy = e.changedTouches[0].screenY - touchStartY;
+  if (e.changedTouches.length !== 1 || e.target.closest('button, input, textarea') || window.getSelection()?.toString() || (window.visualViewport?.scale || 1) > 1) return;
   if (Math.abs(dx) > 58 && Math.abs(dx) > Math.abs(dy) * 1.6) { dx < 0 ? nextReader() : prevReader(); }
 }, { passive:true });
 
@@ -1666,4 +1665,85 @@ function syncSettingsUI() {
 const originalRender = render;
 render = function(view = currentView) { originalRender(view); if (view === 'settings') syncSettingsUI(); };
 
+let pendingBackup = null;
+function renderDeviceSettings() {
+  const installed = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  return `<section class="quiet-card device-settings"><h3>On this device</h3>
+    <p id="device-status" data-offline-label role="status">${esc(window.PrayerOffline.label())}</p>
+    <p>The prayer library, search, and your daily rule work offline once saved. Online guidance and new calendar information need a connection. External reading and source links open on the web.</p>
+    <div class="device-actions"><button class="secondary-button" type="button" data-check-offline>Check download & updates</button><button class="secondary-button" type="button" data-apply-update ${window.PrayerOffline.state().update ? '' : 'hidden'}>Install update</button></div>
+    <p id="device-feedback" role="status"></p>
+    ${installed ? '<p>Installed on your Home Screen.</p>' : '<details><summary>Add to your iPhone</summary><ol class="install-steps"><li>Open this page in Safari.</li><li>Tap Share, then Add to Home Screen.</li><li>Enable Open as Web App if shown, then tap Add.</li><li>Open the new icon while connected. Wait for “Prayer book saved for offline use.”</li></ol></details>'}
+    <h4>Back up your prayer book</h4><p>Save favourites, remembered names, settings, and reading progress to a file. Keep a copy in Files or iCloud Drive in case your phone clears this app’s data.</p>
+    <div class="device-actions"><button class="secondary-button" type="button" data-export-backup>Save backup</button><button class="secondary-button" type="button" data-import-backup>Restore backup</button><input id="backup-file" type="file" accept=".json,application/json" hidden></div>
+    <div id="backup-preview"></div><p class="offline-caption">Prayer Rule · Version 26.0</p></section>`;
+}
+function syncDeviceUI() {
+  document.querySelectorAll('[data-offline-label]').forEach(el => { el.textContent = window.PrayerOffline.label(); });
+  const update = window.PrayerOffline.state().update;
+  const notice = $('update-notice');
+  notice.hidden = !update || window.PrayerOffline.isDismissed();
+  document.querySelectorAll('.device-actions [data-apply-update]').forEach(el => { el.hidden = !update; });
+}
+function backupSnapshot() {
+  saveCurrentReadingPosition(); saveState(); saveAppearance(); savePersonal(); saveFavorites();
+  const defaults = {state:{},appearance:{},personal:{},favorites:[],history:{},recent:[],positions:{},reader:null,communion:null,tailoring:null,completion:null};
+  return {app:'Prayer Rule',format:1,createdAt:new Date().toISOString(),data:Object.fromEntries(window.PrayerBackup.kinds.map(kind => [kind,storedJSON(kind,defaults[kind])]))};
+}
+async function exportBackup() {
+  try {
+    const backup = backupSnapshot();
+    window.PrayerBackup.validate(backup);
+    const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
+    const name = `Prayer-Rule-backup-${todayKey()}.json`;
+    const file = new File([blob],name,{type:blob.type});
+    if (navigator.canShare?.({files:[file]})) { await navigator.share({files:[file],title:'Prayer Rule backup'}); return; }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a'); link.href = url; link.download = name;
+    document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url),30000);
+    showToast('Backup file prepared');
+  } catch (error) { if (error.name !== 'AbortError') showToast('The backup could not be saved. Please try again.'); }
+}
+window.addEventListener('prayer-offline-change', syncDeviceUI);
+document.addEventListener('change', async event => {
+  if (event.target.id !== 'backup-file') return;
+  pendingBackup = null;
+  const preview = $('backup-preview'); preview.innerHTML = '';
+  const file = event.target.files?.[0]; if (!file) return;
+  try {
+    if (file.size > 5 * 1024 * 1024) throw new Error('This file is too large to be a Prayer Rule backup.');
+    const backup = JSON.parse(await file.text());
+    const data = window.PrayerBackup.validate(backup);
+    if (!seasonOptions[data.state.seasonMode] || !plannerModes()[data.state.plannerMode]) throw new Error('This backup uses prayer settings unavailable in this version.');
+    if (data.reader?.steps?.some(step => step.type === 'prayer' && !prayer(step.id))) throw new Error('This backup contains a prayer unavailable in this version.');
+    pendingBackup = data;
+    const names = Object.values(data.personal).filter(Array.isArray).reduce((n,list) => n+list.length,0);
+    preview.innerHTML = `<div class="backup-preview"><p><strong>${esc(data.favorites.length)} favourites · ${names} remembered names</strong></p><p>Restore this backup? It will replace the settings, names, favourites, and progress currently on this device.</p><div class="device-actions"><button class="primary-button" type="button" data-confirm-restore>Restore this backup</button><button class="secondary-button" type="button" data-cancel-restore>Cancel</button></div></div>`;
+  } catch (error) { preview.innerHTML = `<p role="alert">${esc(error instanceof SyntaxError ? 'This file is not a valid Prayer Rule backup. Nothing has been changed.' : error.message)}</p>`; }
+  event.target.value = '';
+});
+document.addEventListener('click', async event => {
+  if (event.target.closest('[data-reload-app]')) { location.reload(); return; }
+  if (event.target.closest('[data-reader-appearance]')) { const panel=$('reader-appearance'); panel.hidden = !panel.hidden; return; }
+  if (event.target.closest('[data-dismiss-update]')) { window.PrayerOffline.dismiss(); return; }
+  if (event.target.closest('[data-apply-update]')) { if (reader) { showToast('Close your prayer before updating.'); return; } saveState(); window.PrayerOffline.applyUpdate(); return; }
+  const check = event.target.closest('[data-check-offline]');
+  if (check) {
+    check.disabled=true;
+    const feedback=$('device-feedback'); if (feedback) feedback.textContent='Checking…';
+    const success=await window.PrayerOffline.check();
+    if (feedback?.isConnected) feedback.textContent=window.PrayerOffline.state().update ? 'An update is ready to install.' : success ? (window.PrayerOffline.state().ready ? 'Your downloaded prayer book is ready.' : 'Download in progress. Keep this app open and connected.') : 'Connect to the internet and try again.';
+    check.disabled=false; return;
+  }
+  if (event.target.closest('[data-export-backup]')) { await exportBackup(); return; }
+  if (event.target.closest('[data-import-backup]')) { $('backup-file')?.click(); return; }
+  if (event.target.closest('[data-cancel-restore]')) { pendingBackup=null; $('backup-preview').innerHTML=''; return; }
+  if (event.target.closest('[data-confirm-restore]') && pendingBackup) {
+    try { window.PrayerBackup.restore(localStorage,STORAGE,pendingBackup); pendingBackup=null; location.reload(); }
+    catch { $('backup-preview').innerHTML='<p role="alert">The backup could not be restored. Please make space on your device and try again.</p>'; }
+  }
+});
+
+window.addEventListener('pagehide', saveCurrentReadingPosition);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (appearance.theme === 'system') applyAppearance(); });
 init();

@@ -1,44 +1,50 @@
-# Prayer Rule — Final Serene PWA
+# Prayer Rule
 
-A premium Orthodox prayer rule Progressive Web App with a cleaner app-style Home screen, offline support, guided page-by-page prayer, Spotlight search, favorites, personal intercessions, rule presets, dynamic prayer planning, season mode, and liquid-glass controls.
+An Orthodox prayer book for daily use on iPhone, with a complete local library and a quiet, book-inspired interface. Hosted as static files on GitHub Pages; no App Store listing, account, build process, or paid API is required for the core app.
 
-## Smoother Companion release
+## Install on iPhone
 
-- Added ten carefully selected prayers from the public-domain 1894 *Book of Needs of the Holy Orthodox Church*, including prayers for a new home, a journey, healing, first fruits, and intercessions to healing saints.
-- Added transparent source, rights, and chapter information to imported prayer details, with a direct link back to [Project Gutenberg eBook 71513](https://www.gutenberg.org/ebooks/71513).
-- Connected the Prayer Companion directly to prayer search, the prayer-book menu, individual prayer explanations, and the session planner.
-- Added one-tap “Add to today” actions from every prayer and richer prayer metadata for AI session shaping.
-- Added AI request timeouts with a graceful on-device planner fallback, smoother expanding message fields, a clearer library count, and a prominent search-by-need entry point.
-- Kept the deployed Cloudflare Worker contract and implementation unchanged; this release only updates the static web app and its offline cache.
+1. Open https://scentsofhome.github.io/prayer-companion/ in Safari.
+2. Choose Share → Add to Home Screen. Enable **Open as Web App** if offered.
+3. Launch the new icon while connected. Wait for **Prayer book saved for offline use**.
+4. Switch on airplane mode and reopen the app to check installation on your phone.
 
-## Smart prayer release
+After an upgrade from the old app, load the page while connected. If an update is offered, choose **Update now**. If the old app is still open in another window, close that window and reopen. Do not delete the Home Screen app or clear website data to update it.
 
-- Added intention-aware offline search for needs such as anxiety, study, grief, illness, confession, travel, and guidance.
-- Added coherent duration targets of approximately 5, 10, 20, or 40 minutes.
-- Added dedicated Before Communion and After Communion screens with full and shorter forms.
-- Communion progress and long-prayer reading position are remembered locally.
-- Added recently opened prayers to Home and Search.
-- Added structured styling for odes, kontakia, ikoi, troparia, refrains, and rubrics.
-- Added source and OCR-status information to prayer details.
-- The screen stays awake while the guided reader is open when the browser supports Wake Lock.
-- Search focus, mobile progress, navigation return position, and settings behavior were corrected.
-- Offline cache updated to `v25-smart-prayer`.
+## Offline architecture
 
-## Final serene polish
+- `service-worker.js` atomically downloads all 31 required documents, scripts, data files, Psalm fragments, and icons. Installation fails if any required file cannot be downloaded.
+- Navigation and core assets come directly from the installed release's cache, without waiting for the network.
+- Readiness is verified against every required cached file by the active worker. It is never inferred from `navigator.onLine`.
+- Updates download in the background and wait for explicit activation or for all older windows to close. The update prompt is hidden during prayer. An unsuccessful install preserves the working release.
+- Settings includes a download/update check and can repair missing cached files when the matching release remains available online.
+- Favourites, reading positions, prayer rules, and remembered names live only in browser storage. Existing storage keys are retained, and legacy formats are read when needed.
+- Saved daily rules include their exact sequence, first-prayer progress, and date. Position is saved on scrolling, closing, page hiding, and app suspension.
+- The complete existing prayer-library text is bundled. Appointed Psalm entries that were references in the original book remain references to a separate Psalter; external source links are not downloaded.
+- AI guidance and fresh GOARCH calendar information are optional online features. Today's fetched calendar record is retained locally for that date; it is never presented as a different day's record. The on-device prayer planner can still tailor a rule offline.
 
-- Split and cleaned the Jordanville prayer book text into individual prayers, canons, akathists, hymns, and Communion texts.
-- Integrated the Jordanville entries into the existing Library shelves instead of keeping them in a separate section.
-- Added metadata and a dynamic planner so standard and extended rules choose coherent prayers by day, office, season, style, length, source, and recent use.
-- Added rule presets for common prayer shapes, including Quiet Morning, Evening Repentance, Busy Day, Jordanville Full, Before Communion, After Communion, Lenten Rule, and Theotokos & Intercession.
-- Incorporated selected Jordanville prayers into dynamic morning/evening rules, daily rotations, quick prayers, and communion preparation/thanksgiving modes.
-- Added rule styles: Balanced, More Jordanville, More Penitential, More Theotokos, and More Intercession.
-- Rebuilt Home around one centered main prayer window.
-- Kept the main action extremely simple: `Pray` or `Resume Prayer` only when real progress exists.
-- Moved Quick Prayers, Find a Prayer, Random Prayer, and Prayer of the Day below the fold so the opening screen feels calmer.
-- Season mode still changes the prayer selection, but no longer changes the background or overrides dark/light appearance.
-- Preserved the bottom dock, centered Spotlight, guided reader, shelves, quick prayers, personal names, and liquid-glass sliders.
-- Offline cache updated to `v22-rule-presets`.
+Browser storage is not a permanent backup: the user or operating system can clear it. **Settings → Save backup** exports favourites, names, settings, history, and reading progress as JSON. **Restore backup** validates the whole file and shows a confirmation before replacing data. The backup is not uploaded to a server. On iPhone, choose **Save to Files** from the share sheet.
 
-## Deploy
+## Design
 
-Upload the contents of this folder to the root of your GitHub Pages repository, replacing the previous version. If iOS keeps an old copy, refresh twice in Safari or remove and re-add the Home Screen app.
+Warm ivory and charcoal surfaces, burgundy and antique-gold accents, serif prayer text, readable controls, and three primary destinations: Today, Prayer Library, Settings. The reader has stable navigation, an accessible progress indicator, text-size controls, and Auto/Light/Dark appearance. Browser zoom is enabled.
+
+## Development and release
+
+This is a dependency-free static app. Keep the repository's directory structure intact and serve it from an HTTPS origin (localhost is also supported for development).
+
+Before publishing changes:
+
+```sh
+node --check src/app.js
+node --check src/offline.js
+node --check src/backup.js
+node --check service-worker.js
+node --test tests/offline.test.cjs
+```
+
+The test harness uses Node's built-in VM, test runner, Request/Response implementations, and a simulated cache/network. It checks offline cache behaviour, failed installation, repair, app rendering from bundled data, exact resume, offline search, backup validation, and rollback. It does not replace testing installation, layout, touch, and airplane mode on an actual iPhone.
+
+For each new release, update `RELEASE` in `service-worker.js`, asset query versions in `index.html`, the app's `VERSION`, and the visible version in device settings together. Never reuse a release number after publishing different asset contents. GitHub Pages deployment follows the repository's normal publishing settings.
+
+The optional Cloudflare Worker in `workers/` is independent of the offline prayer book and is not deployed by uploading these static files.

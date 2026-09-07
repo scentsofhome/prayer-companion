@@ -1,13 +1,12 @@
 {
   "name": "Prayer Rule",
   "short_name": "Prayer Rule",
-  "description": "A premium Orthodox prayer rule PWA with a serene centered Home screen, guided prayer, Spotlight search, offline access, favorites, and a native-app-style interface.",
+  "description": "An Orthodox prayer book for daily prayer, at home or offline.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#17110f",
-  "theme_color": "#17110f",
+  "background_color": "#f6f3ed",
+  "theme_color": "#f6f3ed",
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -21,5 +20,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "./"
 }
